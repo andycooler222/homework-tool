@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📚 作业管理（离线版）</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #f5f7fa;
+  --card-bg: #ffffff;
+  --text: #2c3e50;
+  --text-secondary: #7f8c8d;
+  --primary: #4a6cf7;
+  --primary-light: #e8edfe;
+  --success: #27ae60;
+  --success-light: #eafaf1;
+  --warning: #f39c12;
+  --danger: #e74c3c;
+  --danger-light: #fdedec;
+  --border: #e8ecf1;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: var(--bg); color: var(--text);
+  min-height: 100vh; line-height: 1.6;
+}
+.container { max-width: 820px; margin: 0 auto; padding: 12px 16px 24px; }
+
+/* Buttons */
+.btn {
+  padding: 7px 14px; border: none; border-radius: 8px;
+  font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+}
+.btn-primary { background: var(--primary); color: #fff; }
+.btn-primary:hover { background: #3a54d4; }
+.btn-success { background: var(--success); color: #fff; }
+.btn-success:hover { background: #219a52; }
+.btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border); }
+.btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-danger-text { background: none; border: none; color: var(--danger); font-size: 12px; cursor: pointer; padding: 3px 6px; border-radius: 6px; }
+.btn-danger-text:hover { background: var(--danger-light); }
+.btn-ghost { background: none; border: none; color: var(--primary); font-size: 12px; cursor: pointer; padding: 3px 6px; border-radius: 6px; font-weight: 500; }
+.btn-ghost:hover { background: var(--primary-light); }
+
+/* Header */
+.header {
+  background: var(--card-bg); border-radius: var(--radius);
+  padding: 12px 18px; box-shadow: var(--shadow);
+  margin-bottom: 8px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 18px;
+}
+.header h1 { font-size: 18px; font-weight: 700; }
+.header .date-label { font-size: 12px; color: var(--text-secondary); }
+
+.header-stats {
+  display: flex; gap: 14px; align-items: center;
+}
+.stat-item { display: flex; align-items: baseline; gap: 3px; white-space: nowrap; }
+.stat-value { font-size: 18px; font-weight: 700; color: var(--primary); }
+.stat-value.success { color: var(--success); }
+.stat-value.warning { color: var(--warning); }
+.stat-label { font-size: 10px; color: var(--text-secondary); }
+
+/* Filter Bar */
+.filter-bar {
+  display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+  margin-left: auto;
+}
+.filter-chip {
+  padding: 3px 10px; border-radius: 14px;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  border: 2px solid var(--border);
+  background: var(--card-bg); color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.filter-chip.active {
+  border-color: var(--primary); background: var(--primary-light);
+  color: var(--primary); font-weight: 600;
+}
+.filter-chip .count {
+  display: inline-block;
+  background: var(--border); color: var(--text-secondary);
+  border-radius: 6px; padding: 0 6px; font-size: 10px; margin-left: 2px;
+}
+.filter-chip.active .count { background: var(--primary); color: #fff; }
+
+/* Dashboard */
+.dashboard {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dash-card {
+  background: var(--card-bg); border-radius: var(--radius-sm);
+  padding: 8px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.dash-card .dash-label { font-size: 10px; color: var(--text-secondary); }
+.dash-card .dash-value { font-size: 20px; font-weight: 700; margin-top: 1px; line-height: 1.2; }
+.dash-card .dash-sub { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+.dash-value.primary { color: var(--primary); }
+.dash-value.success { color: var(--success); }
+.dash-value.warning { color: var(--warning); }
+.dash-value.danger { color: var(--danger); }
+.progress-bar-bg {
+  height: 5px; background: var(--bg); border-radius: 3px;
+  margin-top: 5px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 0.5s ease;
+  background: var(--primary);
+}
+.progress-bar-fill.complete { background: var(--success); }
+
+/* HW List */
+.hw-list { display: flex; flex-direction: column; gap: 4px; }
+.hw-card {
+  background: var(--card-bg); border-radius: 8px;
+  padding: 8px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.hw-card:hover { box-shadow: var(--shadow); border-color: var(--border); }
+.hw-card.completed { border-color: var(--success); background: var(--success-light); }
+.order-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 12px; flex-shrink: 0;
+  background: var(--primary-light); color: var(--primary);
+}
+.hw-card.completed .order-num { background: var(--success-light); color: var(--success); }
+.hw-info { flex: 1; min-width: 0; }
+.subject-tag {
+  display: inline-block; padding: 1px 6px; border-radius: 6px;
+  font-size: 10px; font-weight: 600; margin-bottom: 1px;
+}
+.subject-math { background: #ffeaa7; color: #d68910; }
+.subject-chinese { background: #dfe6e9; color: #636e72; }
+.subject-english { background: #81ecec; color: #00a8a8; }
+.subject-science { background: #a29bfe; color: #5b4dc9; }
+.subject-history { background: #fab1a0; color: #c0392b; }
+.subject-pe { background: #55efc4; color: #00695c; }
+.subject-other { background: #b2bec3; color: #2d3436; }
+.hw-name { font-size: 13px; font-weight: 600; }
+.hw-card.completed .hw-name { text-decoration: line-through; color: var(--text-secondary); }
+.hw-meta {
+  display: flex; gap: 8px; margin-top: 2px;
+  font-size: 10px; color: var(--text-secondary); flex-wrap: wrap;
+}
+.hw-actions { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
+.status-badge { padding: 3px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+.status-done { background: var(--success); color: #fff; }
+
+/* Add Form */
+.add-card {
+  background: var(--card-bg); border-radius: var(--radius);
+  padding: 10px 18px; box-shadow: var(--shadow);
+  margin-top: 8px;
+}
+.add-card h2 { font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+.form-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: flex-end; }
+.form-group { display: flex; flex-direction: column; gap: 3px; min-width: 80px; }
+.form-group.name-field { flex: 1; min-width: 130px; }
+.form-group label { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
+.form-group input, .form-group select {
+  padding: 6px 8px; border: 2px solid var(--border);
+  border-radius: 6px; font-size: 13px; color: var(--text);
+  background: var(--bg); outline: none; transition: border-color 0.2s;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+.form-group select { width: 95px; }
+
+/* Modal */
+.modal-overlay {
+  display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.4); z-index: 100;
+  justify-content: center; align-items: center; padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: var(--card-bg); border-radius: var(--radius);
+  padding: 22px; width: 100%; max-width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+.modal h3 { font-size: 15px; margin-bottom: 12px; }
+.modal .form-group { margin-bottom: 8px; }
+.modal .form-group input { width: 100%; }
+.modal-buttons { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
+.timer-box {
+  display: none; text-align: center; padding: 8px;
+  background: var(--bg); border-radius: 8px; margin-top: 4px;
+}
+.timer-box .time { font-size: 26px; font-weight: 700; color: var(--primary); font-family: 'Courier New', monospace; }
+
+/* Empty State */
+.empty-state { text-align: center; padding: 30px 20px; color: var(--text-secondary); }
+.empty-state .icon { font-size: 36px; margin-bottom: 6px; opacity: 0.5; }
+.empty-state h3 { font-size: 14px; margin-bottom: 2px; }
+.empty-state p { font-size: 12px; }
+
+/* 离线提示 */
+.offline-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px;
+  background: #dfe6e9; color: #636e72; font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .header { flex-direction: column; align-items: flex-start; }
+  .header-stats { width: 100%; justify-content: space-between; }
+  .filter-bar { margin-left: 0; }
+  .form-row { flex-direction: column; }
+  .form-group, .form-group select, .form-group input { width: 100% !important; }
+  .hw-card { flex-direction: column; align-items: flex-start; }
+  .hw-actions { width: 100%; justify-content: flex-end; }
+  .dashboard { grid-template-columns: repeat(2, 1fr); }
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <h1>📚 作业管理</h1>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <button class="btn btn-outline btn-sm" onclick="changeDate(-1)" title="前一天">◀</button>
+      <div class="date-label" id="dateLabel" style="min-width:120px;text-align:center;"></div>
+      <button class="btn btn-outline btn-sm" onclick="changeDate(1)" title="后一天">▶</button>
+    </div>
+    <div class="header-stats">
+      <div class="stat-item">
+        <span class="stat-label">总数</span><span class="stat-value" id="statTotal">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">已完成</span><span class="stat-value success" id="statDone">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">待完成</span><span class="stat-value" id="statRemain">0</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">完成率</span><span class="stat-value warning" id="statRate">0%</span>
+      </div>
+    </div>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <span class="offline-badge">💾 本地存储</span>
+      <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">
+        全部<span class="count" id="countAll">0</span>
+      </div>
+      <div class="filter-chip" data-filter="todo" onclick="setFilter('todo')">
+        待完成<span class="count" id="countTodo">0</span>
+      </div>
+      <div class="filter-chip" data-filter="done" onclick="setFilter('done')">
+        已完成<span class="count" id="countDone">0</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Dashboard -->
+  <div class="dashboard">
+    <div class="dash-card">
+      <div class="dash-label">⏱ 预估总时间</div>
+      <div class="dash-value primary" id="dashEstimate">0</div>
+      <div class="dash-sub">分钟</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-label">✅ 实际耗时</div>
+      <div class="dash-value success" id="dashActual">0</div>
+      <div class="dash-sub">分钟</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-label">📊 时间偏差</div>
+      <div class="dash-value warning" id="dashDeviation">0</div>
+      <div class="dash-sub">实际 - 预估</div>
+    </div>
+    <div class="dash-card">
+      <div class="dash-label">🎯 完成进度</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:1px;">
+        <span style="font-size:20px;font-weight:700;color:var(--success);" id="dashProgress">0%</span>
+      </div>
+      <div class="progress-bar-bg">
+        <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HW List -->
+  <div class="hw-list" id="hwList"></div>
+
+  <!-- Add Form -->
+  <div class="add-card">
+    <h2>✏️ 添加作业</h2>
+    <div class="form-row">
+      <div class="form-group name-field">
+        <input type="text" id="inputName" placeholder="例如：数学练习册 P32-35">
+      </div>
+      <div class="form-group">
+        <select id="inputSubject">
+          <option value="math">📐 数学</option>
+          <option value="chinese">📖 语文</option>
+          <option value="english">🌍 英语</option>
+          <option value="science">🔬 科学</option>
+          <option value="pe">🏃 体育</option>
+          <option value="history">📜 历史</option>
+          <option value="other">📋 其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="inputDate">日期</label>
+        <input type="date" id="inputDate">
+      </div>
+      <div class="form-group">
+        <label for="inputEstimate">预估分钟</label>
+        <input type="number" id="inputEstimate" min="1" max="480" value="30" style="width:72px;">
+      </div>
+      <button class="btn btn-primary" onclick="addHomework()" style="align-self:flex-end;">➕ 添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Complete Modal -->
+<div class="modal-overlay" id="completeModal">
+  <div class="modal">
+    <h3>✅ 记录完成时间</h3>
+    <div id="modalSubject" style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;"></div>
+    <div class="form-group">
+      <label>实际耗时（分钟）</label>
+      <input type="number" id="modalActual" min="1" max="480" value="30">
+    </div>
+    <div class="form-group">
+      <div style="display:flex;align-items:center;gap:6px;">
+        <input type="checkbox" id="modalTimer" onchange="toggleTimer()">
+        <label style="cursor:pointer;font-size:12px;">使用计时器</label>
+      </div>
+    </div>
+    <div class="timer-box" id="timerDisplay">
+      <div class="time" id="timerValue">00:00</div>
+      <div style="margin-top:6px;display:flex;gap:6px;justify-content:center;">
+        <button class="btn btn-primary btn-sm" id="timerBtn" onclick="toggleTimerRun()">▶ 开始</button>
+        <button class="btn btn-outline btn-sm" onclick="resetTimer()">🔄 重置</button>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-outline" onclick="closeCompleteModal()">取消</button>
+      <button class="btn btn-success" onclick="confirmComplete()">✓ 确认完成</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ---- 本地存储工具 ----
+var STORAGE_KEY = 'homework_data';
+
+function loadAll() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch(e) {
+    return [];
+  }
+}
+
+function saveAll(list) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+// ---- 日期工具 ----
+function getLocalDateStr(date) {
+  var d = date || new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+var TODAY_DATE = getLocalDateStr();
+var currentDate = TODAY_DATE;
+
+// ---- 状态 ----
+var hwList = [];
+var currentFilter = 'all';
+var completingHwId = null;
+var timerInterval = null;
+var timerSeconds = 0;
+var timerRunning = false;
+
+// ---- 科目配置 ----
+var SUBJECT_MAP = {
+  math:    { name: '数学', icon: '📐', cls: 'subject-math' },
+  chinese: { name: '语文', icon: '📖', cls: 'subject-chinese' },
+  english: { name: '英语', icon: '🌍', cls: 'subject-english' },
+  science: { name: '科学', icon: '🔬', cls: 'subject-science' },
+  history: { name: '历史', icon: '📜', cls: 'subject-history' },
+  pe:      { name: '体育', icon: '🏃', cls: 'subject-pe' },
+  other:   { name: '其他', icon: '📋', cls: 'subject-other' },
+};
+
+// ---- 切换日期 ----
+function changeDate(delta) {
+  var d = new Date(currentDate + 'T00:00:00');
+  d.setDate(d.getDate() + delta);
+  var newDate = getLocalDateStr(d);
+  // 最多查看未来 30 天
+  var maxFuture = new Date(TODAY_DATE + 'T00:00:00');
+  maxFuture.setDate(maxFuture.getDate() + 30);
+  if (newDate > getLocalDateStr(maxFuture)) return;
+  currentDate = newDate;
+  loadForDate();
+}
+
+// ---- 加载当前日期数据 ----
+function loadForDate() {
+  var all = loadAll();
+  hwList = all.filter(function(h) { return h.date === currentDate; });
+  render();
+}
+
+// ---- 渲染 ----
+function render() {
+  var doneItems = hwList.filter(function(h) { return h.completed; });
+  updateHeader(doneItems);
+  updateDashboard(doneItems);
+  updateFilterCounts(doneItems);
+  renderList();
+}
+
+function updateHeader(doneItems) {
+  var d = new Date(currentDate + 'T00:00:00');
+  var weekdays = ['日','一','二','三','四','五','六'];
+  var isToday = (currentDate === TODAY_DATE);
+  var isFuture = (currentDate > TODAY_DATE);
+  var dateStr = (d.getMonth()+1) + '月' + d.getDate() + '日 周' + weekdays[d.getDay()];
+  if (isToday) dateStr += ' 今天';
+  else if (isFuture) dateStr += ' 📅';
+  document.getElementById('dateLabel').textContent = dateStr;
+
+  var total = hwList.length;
+  var done = doneItems.length;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statRemain').textContent = total - done;
+  document.getElementById('statRate').textContent = total > 0 ? Math.round((done / total) * 100) + '%' : '0%';
+}
+
+function updateDashboard(doneItems) {
+  var totalEstimate = hwList.reduce(function(s, h) { return s + (h.estimateMin || 0); }, 0);
+  var totalActual = doneItems.reduce(function(s, h) { return s + (h.actualMin || 0); }, 0);
+  var deviation = totalActual - totalEstimate;
+  var progress = hwList.length > 0 ? Math.round((doneItems.length / hwList.length) * 100) : 0;
+
+  document.getElementById('dashEstimate').textContent = totalEstimate;
+  document.getElementById('dashActual').textContent = totalActual;
+  var devEl = document.getElementById('dashDeviation');
+  devEl.textContent = deviation >= 0 ? '+' + deviation : deviation;
+  devEl.className = 'dash-value ' + (deviation > 0 ? 'danger' : deviation < 0 ? 'success' : 'warning');
+  document.getElementById('dashProgress').textContent = progress + '%';
+  var bar = document.getElementById('progressBar');
+  bar.style.width = progress + '%';
+  bar.className = 'progress-bar-fill' + (progress === 100 ? ' complete' : '');
+}
+
+function updateFilterCounts(doneItems) {
+  var total = hwList.length;
+  var done = doneItems.length;
+  document.getElementById('countAll').textContent = total;
+  document.getElementById('countTodo').textContent = total - done;
+  document.getElementById('countDone').textContent = done;
+}
+
+function setFilter(filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(function(el) { el.classList.remove('active'); });
+  document.querySelector('.filter-chip[data-filter="' + filter + '"]').classList.add('active');
+  renderList();
+}
+
+function renderList() {
+  var items = hwList;
+  if (currentFilter === 'done') items = items.filter(function(h) { return h.completed; });
+  else if (currentFilter === 'todo') items = items.filter(function(h) { return !h.completed; });
+
+  var container = document.getElementById('hwList');
+
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><h3>还没有作业记录</h3><p>在下方添加今天的作业吧！</p></div>';
+    return;
+  }
+
+  container.innerHTML = items.map(function(h, idx) {
+    var sub = SUBJECT_MAP[h.subject] || SUBJECT_MAP.other;
+    var actualInfo = h.completed ? '<span>🕐 实际 <strong>' + (h.actualMin || '-') + '</strong> 分钟</span>' : '';
+    var timeInfo = h.completed && h.completedAt
+      ? '<span>📅 ' + new Date(h.completedAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</span>'
+      : '';
+
+    return '<div class="hw-card' + (h.completed ? ' completed' : '') + '">'
+      + '<div class="order-num">' + (idx + 1) + '</div>'
+      + '<div class="hw-info">'
+        + '<span class="subject-tag ' + sub.cls + '">' + sub.icon + ' ' + sub.name + '</span>'
+        + '<div class="hw-name">' + escHtml(h.name) + '</div>'
+        + '<div class="hw-meta">'
+          + '<span>⏱ 预估 <strong>' + h.estimateMin + '</strong> 分钟</span>'
+          + actualInfo + timeInfo
+        + '</div>'
+      + '</div>'
+      + '<div class="hw-actions">'
+        + (h.completed
+          ? '<span class="status-badge status-done">✓ 已完成</span>'
+            + '<button class="btn-ghost" onclick="undoComplete(\'' + h.id + '\')">↩ 撤销</button>'
+          : '<button class="btn btn-success btn-sm" onclick="openCompleteModal(\'' + h.id + '\')">✅ 完成</button>'
+        )
+        + '<button class="btn-danger-text" onclick="deleteHomework(\'' + h.id + '\')">🗑</button>'
+      + '</div>'
+    + '</div>';
+  }).join('');
+}
+
+function escHtml(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+// ---- CRUD（localStorage） ----
+function addHomework() {
+  var name = document.getElementById('inputName').value.trim();
+  var subject = document.getElementById('inputSubject').value;
+  var estimateMin = parseInt(document.getElementById('inputEstimate').value) || 30;
+  var targetDate = document.getElementById('inputDate').value || currentDate;
+  if (!name) { alert('请输入作业名称'); return; }
+
+  var id = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+  var all = loadAll();
+  all.push({
+    id: id, date: targetDate, name: name, subject: subject,
+    estimateMin: Math.max(1, estimateMin),
+    completed: false, actualMin: null, completedAt: null,
+    createdAt: new Date().toISOString()
+  });
+  saveAll(all);
+
+  document.getElementById('inputName').value = '';
+  document.getElementById('inputEstimate').value = '30';
+  document.getElementById('inputName').focus();
+
+  if (targetDate !== currentDate) {
+    currentDate = targetDate;
+    document.getElementById('inputDate').value = targetDate;
+  }
+  loadForDate();
+}
+
+function openCompleteModal(hwId) {
+  completingHwId = hwId;
+  var hw = hwList.find(function(h) { return h.id === hwId; });
+  if (!hw) return;
+  var sub = SUBJECT_MAP[hw.subject] || SUBJECT_MAP.other;
+  document.getElementById('modalSubject').innerHTML = sub.icon + ' ' + sub.name + ' — <strong>' + escHtml(hw.name) + '</strong>';
+  document.getElementById('modalActual').value = hw.estimateMin;
+  document.getElementById('modalTimer').checked = false;
+  stopTimer();
+  timerSeconds = 0;
+  updateTimerDisplay();
+  document.getElementById('timerDisplay').style.display = 'none';
+  document.getElementById('completeModal').classList.add('show');
+}
+
+function closeCompleteModal() {
+  stopTimer();
+  document.getElementById('completeModal').classList.remove('show');
+  completingHwId = null;
+}
+
+function confirmComplete() {
+  if (!completingHwId) return;
+  if (timerRunning) stopTimer();
+  var actualMin = parseInt(document.getElementById('modalActual').value) || 30;
+  if (timerSeconds > 0) actualMin = Math.round(timerSeconds / 60);
+
+  var all = loadAll();
+  var idx = all.findIndex(function(h) { return h.id === completingHwId; });
+  if (idx !== -1) {
+    all[idx].completed = true;
+    all[idx].actualMin = Math.max(1, actualMin);
+    all[idx].completedAt = new Date().toISOString();
+    saveAll(all);
+  }
+
+  closeCompleteModal();
+  loadForDate();
+}
+
+function undoComplete(hwId) {
+  var all = loadAll();
+  var idx = all.findIndex(function(h) { return h.id === hwId; });
+  if (idx !== -1) {
+    all[idx].completed = false;
+    all[idx].actualMin = null;
+    all[idx].completedAt = null;
+    saveAll(all);
+  }
+  loadForDate();
+}
+
+function deleteHomework(hwId) {
+  if (!confirm('确定要删除这项作业吗？')) return;
+  var all = loadAll();
+  saveAll(all.filter(function(h) { return h.id !== hwId; }));
+  loadForDate();
+}
+
+// ---- 计时器 ----
+function toggleTimer() {
+  var checked = document.getElementById('modalTimer').checked;
+  document.getElementById('timerDisplay').style.display = checked ? 'block' : 'none';
+  if (!checked) { stopTimer(); timerSeconds = 0; updateTimerDisplay(); }
+}
+
+function toggleTimerRun() {
+  if (timerRunning) { stopTimer(); document.getElementById('timerBtn').textContent = '▶ 开始'; }
+  else { startTimer(); document.getElementById('timerBtn').textContent = '⏸ 暂停'; }
+}
+
+function startTimer() {
+  timerRunning = true;
+  timerInterval = setInterval(function() { timerSeconds++; updateTimerDisplay(); }, 1000);
+}
+
+function stopTimer() {
+  timerRunning = false;
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+}
+
+function resetTimer() {
+  stopTimer(); timerSeconds = 0; updateTimerDisplay();
+  document.getElementById('timerBtn').textContent = '▶ 开始';
+}
+
+function updateTimerDisplay() {
+  var min = Math.floor(timerSeconds / 60);
+  var sec = timerSeconds % 60;
+  document.getElementById('timerValue').textContent =
+    String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+}
+
+// ---- 键盘 ----
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && document.activeElement === document.getElementById('inputName')) {
+    e.preventDefault(); addHomework();
+  }
+});
+
+// ---- 初始化 ----
+var dateInput = document.getElementById('inputDate');
+dateInput.value = TODAY_DATE;
+
+loadForDate();
+</script>
+</body>
+</html>
