@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>上周作业报表 | 6.8-6.14</title>
+<style>
+  :root {
+    --primary: #4a6cf7; --primary-light: #eef1fd;
+    --success: #27ae60; --success-light: #ecfdf5;
+    --warning: #f39c12; --warning-light: #fffbeb;
+    --danger: #e74c3c; --danger-light: #fef2f2;
+    --text: #1a1a2e; --text-secondary: #6b7280;
+    --bg: #f0f2f8; --card-bg: #ffffff; --border: #e5e7eb;
+    --gold: #d4a017;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); padding: 20px; max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 22px; margin-bottom: 4px; }
+  .subtitle { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; }
+
+  .card { background: var(--card-bg); border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .card-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 6px; }
+
+  /* Summary Row */
+  .summary-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .summary-item { background: var(--card-bg); border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+  .summary-item .num { font-size: 28px; font-weight: 800; line-height: 1.1; }
+  .summary-item .label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+  .summary-item.primary .num { color: var(--primary); }
+  .summary-item.success .num { color: var(--success); }
+  .summary-item.warning .num { color: var(--warning); }
+  .summary-item.danger .num { color: var(--danger); }
+
+  /* Daily Breakdown */
+  .day-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; gap: 10px; }
+  .day-row:last-child { border-bottom: none; }
+  .day-date { width: 72px; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+  .day-date .weekday { font-size: 10px; color: var(--text-secondary); font-weight: 400; }
+  .day-bar-wrap { flex: 1; height: 22px; background: #f3f4f6; border-radius: 6px; overflow: hidden; position: relative; }
+  .day-bar { height: 100%; border-radius: 6px; transition: width 0.6s ease; display: flex; align-items: center; padding-left: 8px; }
+  .day-bar.done { background: linear-gradient(90deg, var(--primary), var(--success)); color: #fff; font-size: 11px; font-weight: 600; }
+  .day-bar.mixed { background: linear-gradient(90deg, var(--warning), #f59e0b); color: #fff; font-size: 11px; font-weight: 600; }
+  .day-bar.low { background: linear-gradient(90deg, var(--danger), #f87171); color: #fff; font-size: 11px; font-weight: 600; }
+  .day-stat { width: 52px; text-align: right; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+
+  /* Subject Breakdown */
+  .subject-row { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #f3f4f6; gap: 10px; }
+  .subject-row:last-child { border-bottom: none; }
+  .subject-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .subject-info { flex: 1; }
+  .subject-name { font-size: 14px; font-weight: 600; }
+  .subject-detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+  .subject-pct { font-size: 18px; font-weight: 800; flex-shrink: 0; width: 50px; text-align: right; }
+
+  /* Time Accuracy */
+  .accuracy-row { display: flex; align-items: center; padding: 8px 0; gap: 10px; }
+  .accuracy-name { width: 100px; font-size: 13px; font-weight: 500; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .accuracy-bar-wrap { flex: 1; height: 16px; background: #f3f4f6; border-radius: 4px; overflow: hidden; position: relative; }
+  .accuracy-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+  .accuracy-bar.over { background: var(--danger); }
+  .accuracy-bar.on { background: var(--success); }
+  .accuracy-bar.under { background: var(--primary); }
+  .accuracy-label { width: 44px; font-size: 11px; color: var(--text-secondary); text-align: right; flex-shrink: 0; }
+
+  /* Unfinished */
+  .unfinished-list { list-style: none; }
+  .unfinished-list li { padding: 8px 12px; margin-bottom: 6px; background: var(--danger-light); border-radius: 8px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+  .unfinished-list li .date-tag { font-size: 11px; color: var(--danger); font-weight: 600; background: #fecaca; padding: 1px 6px; border-radius: 4px; }
+  .unfinished-list li .name { flex: 1; font-weight: 500; }
+
+  /* Tip */
+  .tip { background: var(--primary-light); border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.6; }
+
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    .summary-row { grid-template-columns: repeat(2, 1fr); }
+    .summary-item .num { font-size: 22px; }
+    .day-date { width: 56px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<h1>📊 上周作业报表</h1>
+<p class="subtitle">2026年6月8日（周一）— 6月14日（周日）</p>
+
+<!-- 概览 -->
+<div class="summary-row" id="summaryRow"></div>
+
+<!-- 每日完成率 -->
+<div class="card">
+  <div class="card-title">📅 每日完成率</div>
+  <div id="dailyBreakdown"></div>
+</div>
+
+<!-- 科目分布 -->
+<div class="card">
+  <div class="card-title">📚 科目完成情况</div>
+  <div id="subjectBreakdown"></div>
+</div>
+
+<!-- 时间预估准确度 -->
+<div class="card">
+  <div class="card-title">⏱ 时间预估 vs 实际</div>
+  <div id="accuracyChart"></div>
+</div>
+
+<!-- 未完成项 -->
+<div class="card" id="unfinishedCard">
+  <div class="card-title">⚠️ 未完成项</div>
+  <ul class="unfinished-list" id="unfinishedList"></ul>
+</div>
+
+<!-- 本周建议 -->
+<div class="card">
+  <div class="card-title">💡 本周建议</div>
+  <div id="tips"></div>
+</div>
+
+<script>
+// ===== RAW DATA =====
+var raw = [
+  {date:"2026-06-08",name:"卷子",subject:"math",estimate_min:40,actual_min:40,completed:true},
+  {date:"2026-06-08",name:"阅读",subject:"chinese",estimate_min:30,actual_min:30,completed:true},
+  {date:"2026-06-09",name:"口算练习",subject:"math",estimate_min:20,actual_min:20,completed:true},
+  {date:"2026-06-09",name:"壶铃",subject:"pe",estimate_min:30,actual_min:30,completed:true},
+  {date:"2026-06-09",name:"英语卷",subject:"english",estimate_min:40,actual_min:40,completed:true},
+  {date:"2026-06-09",name:"小古文",subject:"chinese",estimate_min:30,actual_min:null,completed:false},
+  {date:"2026-06-10",name:"数学-综合练习专项",subject:"math",estimate_min:30,actual_min:30,completed:true},
+  {date:"2026-06-10",name:"英语词汇2页",subject:"english",estimate_min:10,actual_min:10,completed:true},
+  {date:"2026-06-11",name:"运动",subject:"pe",estimate_min:30,actual_min:30,completed:true},
+  {date:"2026-06-11",name:"数学口算",subject:"math",estimate_min:20,actual_min:null,completed:false},
+  {date:"2026-06-11",name:"复习爱乐奇英语",subject:"english",estimate_min:60,actual_min:60,completed:true},
+  {date:"2026-06-12",name:"EF课",subject:"english",estimate_min:60,actual_min:60,completed:true},
+  {date:"2026-06-12",name:"小古文",subject:"chinese",estimate_min:30,actual_min:null,completed:false},
+  {date:"2026-06-12",name:"口算练习",subject:"math",estimate_min:20,actual_min:null,completed:false},
+  {date:"2026-06-13",name:"基础部分复习",subject:"chinese",estimate_min:60,actual_min:null,completed:false},
+  {date:"2026-06-13",name:"英语错题总结",subject:"english",estimate_min:60,actual_min:null,completed:false},
+  {date:"2026-06-13",name:"数学卷",subject:"math",estimate_min:60,actual_min:60,completed:true},
+  {date:"2026-06-14",name:"数学综合题 思考逻辑",subject:"math",estimate_min:60,actual_min:60,completed:true},
+  {date:"2026-06-14",name:"阅读2篇+精读总结",subject:"chinese",estimate_min:60,actual_min:null,completed:false},
+  {date:"2026-06-14",name:"英语卷",subject:"english",estimate_min:40,actual_min:40,completed:true},
+  {date:"2026-06-14",name:"EF作业",subject:"english",estimate_min:30,actual_min:30,completed:true},
+  {date:"2026-06-14",name:"数学 口算",subject:"math",estimate_min:20,actual_min:null,completed:false}
+];
+
+// ===== CALC =====
+var total = raw.length;
+var done = raw.filter(function(h){return h.completed}).length;
+var pct = Math.round(done/total*100);
+var totalEst = raw.reduce(function(s,h){return s+h.estimate_min},0);
+var totalActual = raw.filter(function(h){return h.completed}).reduce(function(s,h){return s+(h.actual_min||0)},0);
+
+// Summary
+document.getElementById('summaryRow').innerHTML =
+  '<div class="summary-item primary"><div class="num">'+total+'</div><div class="label">总项数</div></div>' +
+  '<div class="summary-item success"><div class="num">'+done+'</div><div class="label">已完成</div></div>' +
+  '<div class="summary-item warning"><div class="num">'+pct+'%</div><div class="label">完成率</div></div>' +
+  '<div class="summary-item primary"><div class="num">'+totalActual+'</div><div class="label">实际用时(分)</div></div>';
+
+// Daily
+var weekdays = ['日','一','二','三','四','五','六'];
+var dailyMap = {};
+raw.forEach(function(h){
+  if(!dailyMap[h.date]) dailyMap[h.date] = {total:0,done:0};
+  dailyMap[h.date].total++;
+  if(h.completed) dailyMap[h.date].done++;
+});
+var dates = Object.keys(dailyMap).sort();
+var dailyHTML = '';
+dates.forEach(function(d){
+  var info = dailyMap[d];
+  var dpct = Math.round(info.done/info.total*100);
+  var dt = new Date(d+'T00:00:00');
+  var wd = weekdays[dt.getDay()];
+  var cls = dpct >= 80 ? 'done' : dpct >= 50 ? 'mixed' : 'low';
+  dailyHTML += '<div class="day-row">' +
+    '<div class="day-date">'+d.slice(5)+'<br><span class="weekday">周'+wd+'</span></div>' +
+    '<div class="day-bar-wrap"><div class="day-bar '+cls+'" style="width:'+Math.max(dpct,8)+'%">'+dpct+'%</div></div>' +
+    '<div class="day-stat">'+info.done+'/'+info.total+'</div></div>';
+});
+document.getElementById('dailyBreakdown').innerHTML = dailyHTML;
+
+// Subject
+var subjectMeta = {
+  math: {name:'数学',icon:'🔢',color:'#4a6cf7',bg:'#eef1fd'},
+  chinese: {name:'语文',icon:'📖',color:'#e74c3c',bg:'#fef2f2'},
+  english: {name:'英语',icon:'🔤',color:'#27ae60',bg:'#ecfdf5'},
+  pe: {name:'运动',icon:'⚽',color:'#f39c12',bg:'#fffbeb'}
+};
+var subjectMap = {};
+raw.forEach(function(h){
+  if(!subjectMap[h.subject]) subjectMap[h.subject] = {total:0,done:0,estMin:0,actMin:0};
+  subjectMap[h.subject].total++;
+  subjectMap[h.subject].estMin += h.estimate_min;
+  if(h.completed){
+    subjectMap[h.subject].done++;
+    subjectMap[h.subject].actMin += (h.actual_min||0);
+  }
+});
+var subHTML = '';
+Object.keys(subjectMap).forEach(function(key){
+  var s = subjectMap[key];
+  var m = subjectMeta[key];
+  var spct = Math.round(s.done/s.total*100);
+  subHTML += '<div class="subject-row">' +
+    '<div class="subject-icon" style="background:'+m.bg+'">'+m.icon+'</div>' +
+    '<div class="subject-info"><div class="subject-name">'+m.name+'</div>' +
+    '<div class="subject-detail">'+s.done+'/'+s.total+'项 · 预估'+s.estMin+'分 / 实际'+s.actMin+'分</div></div>' +
+    '<div class="subject-pct" style="color:'+(spct>=80?'var(--success)':spct>=50?'var(--warning)':'var(--danger)')+'">'+spct+'%</div></div>';
+});
+document.getElementById('subjectBreakdown').innerHTML = subHTML;
+
+// Accuracy (completed items only)
+var completed = raw.filter(function(h){return h.completed && h.actual_min});
+var accHTML = '';
+completed.forEach(function(h){
+  var diff = h.actual_min - h.estimate_min;
+  var ratio = h.actual_min / h.estimate_min;
+  var barW = Math.min(ratio * 100, 150);
+  var cls = diff > 5 ? 'over' : diff < -5 ? 'under' : 'on';
+  var label = diff > 0 ? '+'+diff+'分' : diff < 0 ? diff+'分' : '准时';
+  accHTML += '<div class="accuracy-row">' +
+    '<div class="accuracy-name">'+h.name+'</div>' +
+    '<div class="accuracy-bar-wrap"><div class="accuracy-bar '+cls+'" style="width:'+barW+'%"></div></div>' +
+    '<div class="accuracy-label">'+label+'</div></div>';
+});
+document.getElementById('accuracyChart').innerHTML = accHTML;
+
+// Unfinished
+var unfinished = raw.filter(function(h){return !h.completed});
+if(unfinished.length === 0){
+  document.getElementById('unfinishedCard').style.display = 'none';
+} else {
+  var ufHTML = '';
+  unfinished.forEach(function(h){
+    var m = subjectMeta[h.subject];
+    ufHTML += '<li><span class="date-tag">'+h.date.slice(5)+'</span><span class="name">'+m.icon+' '+h.name+'</span><span style="color:var(--text-secondary);font-size:11px">预估'+h.estimate_min+'分</span></li>';
+  });
+  document.getElementById('unfinishedList').innerHTML = ufHTML;
+}
+
+// Tips
+var tips = [];
+if(pct < 70) tips.push('完成率 '+pct+'%，偏低。建议每天固定时间做作业，养成习惯后完成率会明显提升。');
+else if(pct < 90) tips.push('完成率 '+pct+'%，还不错！再坚持一下，把零散的未完成项补上就更好了。');
+else tips.push('完成率 '+pct+'%，很棒！继续保持节奏。');
+
+var mathSub = subjectMap.math;
+if(mathSub && mathSub.done < mathSub.total) tips.push('数学有 '+(mathSub.total-mathSub.done)+' 项口算未完成，口算贵在坚持，每天10分钟就能保持手感。');
+
+var chineseSub = subjectMap.chinese;
+if(chineseSub && chineseSub.done < chineseSub.total) tips.push('语文小古文两次未完成，可以尝试缩短单次时间（如15分钟），先建立习惯再增加量。');
+
+var thursInfo = dailyMap['2026-06-12'];
+if(thursInfo && thursInfo.done < thursInfo.total) tips.push('周四完成率最低（'+Math.round(thursInfo.done/thursInfo.total*100)+'%），周中容易松懈，可以定个提醒。');
+
+tips.push('建议：每天作业不超过5项，完成率优先于数量。');
+
+var tipHTML = tips.map(function(t){return '<div class="tip" style="margin-bottom:10px">'+t+'</div>';}).join('');
+document.getElementById('tips').innerHTML = tipHTML;
+</script>
+</body>
+</html>

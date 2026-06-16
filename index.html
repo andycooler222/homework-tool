@@ -151,13 +151,6 @@ body {
   100% { background: var(--card-bg); }
 }
 .hw-card.completed { border-color: var(--success); background: var(--success-light); }
-.order-num {
-  width: 22px; height: 22px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 10px; flex-shrink: 0;
-  background: var(--primary-light); color: var(--primary);
-}
-.hw-card.completed .order-num { background: var(--success-light); color: var(--success); }
 .hw-info { flex: 1; min-width: 0; }
 .subject-tag {
   display: inline-block; padding: 1px 6px; border-radius: 6px;
@@ -177,8 +170,6 @@ body {
   font-size: 10px; color: var(--text-secondary); flex-wrap: wrap;
 }
 .hw-actions { display: flex; gap: 3px; align-items: center; flex-shrink: 0; }
-.status-badge { padding: 2px 7px; border-radius: 12px; font-size: 10px; font-weight: 600; }
-.status-done { background: var(--success); color: #fff; }
 
 /* Add Form */
 .add-card {
@@ -198,7 +189,7 @@ body {
   align-items: center;
   font-size: 13px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: var(--text);
   transition: background 0.15s;
 }
 .add-toggle:hover {
@@ -293,13 +284,6 @@ body {
 .week-day .day-name { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
 .week-day .day-date { font-size: 17px; font-weight: 700; line-height: 1.2; }
 .week-day .day-count { font-size: 10px; color: var(--primary); font-weight: 600; margin-top: 2px; }
-.week-day .day-dots { margin-top: 2px; line-height: 1; }
-.week-day .day-dot {
-  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-  margin: 0 1px; vertical-align: middle;
-}
-.week-day .dot-done { background: var(--success); }
-.week-day .dot-todo { background: var(--warning); }
 .week-day .day-empty { font-size: 10px; color: var(--text-secondary); margin-top: 4px; }
 .week-day.active .day-name, .week-day.active .day-date { color: var(--primary); }
 
@@ -359,7 +343,6 @@ body {
   .container { padding: 6px 8px 16px; }
   .header-top { padding: 6px 8px; gap: 4px; }
   .header h1 { font-size: 14px; }
-  .header-stats { gap: 6px; }
   .header-stats { gap: 4px; }
   .stat-text { font-size: 10px; }
   .stat-text strong { font-size: 12px; }
@@ -367,12 +350,10 @@ body {
   .progress-label { font-size: 9px; min-width: 24px; }
   .hw-card { padding: 4px 8px; gap: 6px; }
   .hw-name { font-size: 12px; }
-  .order-num { width: 18px; height: 18px; font-size: 8px; }
   .hw-meta { font-size: 9px; gap: 4px; }
   .subject-tag { font-size: 9px; padding: 0 4px; }
   .hw-actions .btn-sm { padding: 3px 6px; font-size: 10px; }
   .hw-actions .btn-danger-text { padding: 3px 5px; font-size: 11px; }
-  .status-badge { font-size: 9px; padding: 2px 5px; }
   .modal { padding: 12px; max-width: 95%; }
   .modal h3 { font-size: 13px; }
   .timer-box .time { font-size: 22px; letter-spacing: 0.02em; }
@@ -386,7 +367,6 @@ body {
   .week-day .day-date { font-size: 13px; }
   .week-day .day-name { font-size: 9px; }
   .week-day .day-count { font-size: 9px; }
-  .week-day .day-dot { width: 5px; height: 5px; }
   .week-nav { width: 24px; height: 24px; font-size: 12px; }
   .week-days { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
@@ -570,7 +550,6 @@ const SUBJECT_MAP = {
 
 // ---- Data Fetch ----
 async function fetchHomeworks() {
-  var _a, _b;
   var result = await sb.from('homework').select('*').eq('date', currentDate).order('id');
   if (result.error) {
     console.warn('fetch error:', result.error.message);
@@ -578,12 +557,12 @@ async function fetchHomeworks() {
     return;
   }
   syncOnline = true;
-  hwList = ((_b = (_a = result.data) === null || _a === void 0 ? void 0 : _a.map) === null || _b === void 0 ? void 0 : _b.call(_a, function(r) {
+  hwList = (result.data || []).map(function(r) {
     return { id: r.id, name: r.name, subject: r.subject, estimateMin: r.estimate_min, completed: r.completed, actualMin: r.actual_min, completedAt: r.completed_at };
-  })) || [];
+  });
   render();
   _lastFetchTs = Date.now();
-  fetchWeekOverview(); // 并行触发，不阻塞页面渲染
+  fetchWeekOverview();
 }
 
 function render() {
@@ -672,27 +651,24 @@ function renderList() {
     return;
   }
 
-  container.innerHTML = items.map(function(h, idx) {
+  container.innerHTML = items.map(function(h) {
     var sub = SUBJECT_MAP[h.subject] || SUBJECT_MAP.other;
-    var actualInfo = h.completed ? '<span>🕐 实际 <strong>' + (h.actualMin || '-') + '</strong> 分钟</span>' : '';
-    var timeInfo = h.completed && h.completedAt
-      ? '<span>📅 ' + new Date(h.completedAt).toLocaleTimeString('zh-CN', {hour:'2-digit',minute:'2-digit'}) + '</span>'
-      : '';
+    var metaHtml;
+    if (h.completed) {
+      metaHtml = '<span>🕐 用了 <strong>' + (h.actualMin || '-') + '</strong> 分钟</span>';
+    } else {
+      metaHtml = '<span>⏱ 预估 <strong>' + h.estimateMin + '</strong> 分钟</span>';
+    }
 
     return '<div class="hw-card' + (h.completed ? ' completed' : '') + '" id="hw-' + h.id + '">'
-      + '<div class="order-num">' + (idx + 1) + '</div>'
       + '<div class="hw-info">'
         + '<span class="subject-tag ' + sub.cls + '">' + sub.icon + ' ' + sub.name + '</span>'
         + '<div class="hw-name">' + escHtml(h.name) + '</div>'
-        + '<div class="hw-meta">'
-          + '<span>⏱ 预估 <strong>' + h.estimateMin + '</strong> 分钟</span>'
-          + actualInfo + timeInfo
-        + '</div>'
+        + '<div class="hw-meta">' + metaHtml + '</div>'
       + '</div>'
       + '<div class="hw-actions">'
         + (h.completed
-          ? '<span class="status-badge status-done">✓ 已完成</span>'
-            + '<button class="btn-ghost" onclick="undoComplete(\'' + h.id + '\')">↩ 撤销</button>'
+          ? '<button class="btn-ghost" onclick="undoComplete(\'' + h.id + '\')">↩ 撤销</button>'
           : '<button class="btn btn-quick btn-sm" title="快速完成（用预估时间）" onclick="quickComplete(\'' + h.id + '\')">⚡</button>'
             + '<button class="btn btn-success btn-sm" onclick="openCompleteModal(\'' + h.id + '\')">✅ 完成</button>'
         )
@@ -796,10 +772,7 @@ function renderWeekStrip(range) {
     if (wd.total === 0) {
       body = '<div class="day-empty">—</div>';
     } else {
-      var dots = '';
-      for (var i = 0; i < wd.done; i++) dots += '<span class="day-dot dot-done"></span>';
-      for (var j = 0; j < wd.total - wd.done; j++) dots += '<span class="day-dot dot-todo"></span>';
-      body = '<div class="day-count">' + wd.total + ' 项</div><div class="day-dots">' + dots + '</div>';
+      body = '<div class="day-count">' + wd.done + '/' + wd.total + '</div>';
     }
 
     return '<div class="' + cls + '" onclick="goToDate(\'' + dateStr + '\')">'
