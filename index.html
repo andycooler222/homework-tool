@@ -244,6 +244,8 @@ body {
 /* ===== Wrong Question Book Styles ===== */
 .wq-section { display: none; }
 .wq-section.active { display: block; }
+.hw-section { display: none; }
+.hw-section.active { display: block; }
 
 .wq-header-bar {
   display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
@@ -310,6 +312,60 @@ body {
   background: var(--bg); border-radius: 6px; padding: 4px 8px;
   margin-bottom: 4px;
 }
+.wq-card-images {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.wq-image-thumb {
+  max-width: 100%; max-height: 160px;
+  border-radius: 8px; border: 1px solid var(--border);
+  cursor: pointer; object-fit: cover;
+}
+
+/* Image Upload */
+.wq-image-upload {
+  border: 2px dashed var(--border); border-radius: var(--radius-sm);
+  padding: 10px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: var(--bg); font-size: 12px; color: var(--text-secondary);
+}
+.wq-image-upload:hover {
+  border-color: var(--primary); background: var(--primary-light);
+}
+.wq-image-upload input[type="file"] { display: none; }
+.wq-image-preview {
+  max-width: 100%; max-height: 120px; border-radius: 6px;
+  margin-top: 4px; display: block; border: 1px solid var(--border);
+}
+
+/* AI Buttons */
+.btn-ai {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff; font-size: 11px; padding: 3px 8px;
+  border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+}
+.btn-ai:hover { opacity: 0.9; }
+.btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* AI Result Modal */
+.ai-result-box {
+  background: var(--bg); border-radius: 8px; padding: 12px;
+  margin: 8px 0; font-size: 13px; line-height: 1.6;
+  max-height: 320px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-word;
+}
+.ai-result-box .question-item {
+  background: var(--card-bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 8px; margin-bottom: 8px;
+}
+.ai-result-box .question-item .q-title {
+  font-weight: 600; color: var(--primary); margin-bottom: 4px;
+}
+.setting-row {
+  display: flex; gap: 8px; align-items: center;
+  margin-bottom: 8px;
+}
+.setting-row input { flex: 1; font-size: 12px; }
 .wq-meta {
   display: flex; gap: 8px; align-items: center;
   font-size: 11px; color: var(--text-secondary);
@@ -585,6 +641,7 @@ body {
       <span class="stat-text">复习中 <strong id="wqStatReviewing" style="color:var(--warning)">0</strong></span>
       <span class="stat-text">已掌握 <strong id="wqStatMastered" style="color:var(--success)">0</strong></span>
       <div class="filter-bar" style="margin-left:auto;">
+        <button class="btn btn-ghost btn-sm" onclick="openAiSettingsModal()" title="AI 设置">⚙️</button>
         <div class="filter-chip active" data-wq-filter="all" onclick="setWqFilter('all')">
           全部<span class="count" id="wqCountAll">0</span>
         </div>
@@ -676,6 +733,16 @@ body {
             <input type="text" id="wqInputNotes" placeholder="补充说明（可选）">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group name-field">
+            <label>题目图片</label>
+            <div class="wq-image-upload" onclick="document.getElementById('wqInputImage').click()">
+              <input type="file" id="wqInputImage" accept="image/*" onchange="previewWqImage(this, 'wqImagePreview')">
+              <span>📷 点击拍照或上传图片</span>
+              <img id="wqImagePreview" class="wq-image-preview" style="display:none;">
+            </div>
+          </div>
+        </div>
         <div class="form-row" style="margin-top:4px;">
           <button class="btn btn-primary" onclick="addWrongQuestion()">➕ 添加错题</button>
           <button class="btn btn-ghost" onclick="toggleWqAddForm()">收起</button>
@@ -686,7 +753,7 @@ body {
 
 </div>
 
-<footer class="app-footer">v1.7.0</footer>
+<footer class="app-footer">v1.8.0</footer>
 
 <!-- Complete Modal -->
 <div class="modal-overlay" id="completeModal">
@@ -783,9 +850,75 @@ body {
         <input type="text" id="wqEditNotes">
       </div>
     </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>题目图片</label>
+        <div class="wq-image-upload" onclick="document.getElementById('wqEditImage').click()">
+          <input type="file" id="wqEditImage" accept="image/*" onchange="previewWqImage(this, 'wqEditImagePreview')">
+          <span>📷 更换图片</span>
+          <img id="wqEditImagePreview" class="wq-image-preview" style="display:none;">
+        </div>
+      </div>
+    </div>
+    <div id="wqEditAiAnalysisBox" style="display:none;">
+      <div class="form-row">
+        <div class="form-group" style="flex:1;min-width:100%;">
+          <label>AI 错因分析</label>
+          <div class="ai-result-box" id="wqEditAiAnalysis" style="max-height:120px;"></div>
+        </div>
+      </div>
+    </div>
     <div class="modal-buttons">
       <button class="btn btn-outline" onclick="closeWqEditModal()">取消</button>
       <button class="btn btn-primary" onclick="saveWqEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Generate Similar Questions Modal -->
+<div class="modal-overlay" id="aiGenerateModal">
+  <div class="modal wq-modal">
+    <h3>🤖 AI 生成同类题</h3>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>原题</label>
+        <div class="ai-result-box" id="aiGenOriginal" style="max-height:80px;font-size:12px;background:var(--primary-light);color:var(--text);"></div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>生成数量</label>
+        <select id="aiGenCount">
+          <option value="3">3 道</option>
+          <option value="5">5 道</option>
+          <option value="10">10 道</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row" id="aiGenResultRow" style="display:none;">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>生成的题目</label>
+        <div class="ai-result-box" id="aiGenResult"></div>
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-outline" onclick="closeAiGenerateModal()">关闭</button>
+      <button class="btn btn-ai" id="aiGenBtn" onclick="doAiGenerate()">✨ 生成同类题</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI Settings Modal -->
+<div class="modal-overlay" id="aiSettingsModal">
+  <div class="modal wq-modal">
+    <h3>⚙️ AI 设置</h3>
+    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">配置 DeepSeek API Key 以启用 AI 分析错因和生成同类题功能。Key 仅保存在本地浏览器。</p>
+    <div class="setting-row">
+      <input type="password" id="deepSeekKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx">
+      <button class="btn btn-primary" onclick="saveDeepSeekKey()">保存</button>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-outline" onclick="closeAiSettingsModal()">关闭</button>
     </div>
   </div>
 </div>
@@ -857,6 +990,9 @@ let wqSubjectFilter = 'all';
 let wqSyncOnline = false;
 let _wqPendingHighlightId = null;
 let _wqEditingId = null;
+let _wqEditingImageUrl = null;
+let _aiGeneratingWqId = null;
+let deepSeekKey = localStorage.getItem('deepSeekKey') || '';
 
 const MASTERY_MAP = {
   unmastered: { label: '未掌握', cls: 'mastery-unmastered' },
@@ -1400,6 +1536,7 @@ async function fetchWrongQuestions() {
       questionText: r.question_text || '', wrongAnswer: r.wrong_answer || '',
       correctAnswer: r.correct_answer || '', mistakeReason: r.mistake_reason || '',
       masteryStatus: r.mastery_status || 'unmastered', notes: r.notes || '',
+      imageUrl: r.image_url || '', aiAnalysis: r.ai_analysis || '',
       createdAt: r.created_at, updatedAt: r.updated_at
     };
   });
@@ -1454,6 +1591,14 @@ function renderWrongQuestions() {
     }
 
     var reasonHtml = w.mistakeReason ? '<div class="wq-reason">💡 ' + escHtml(w.mistakeReason) + '</div>' : '';
+    var aiAnalysisHtml = w.aiAnalysis ? '<div class="wq-reason" style="background:linear-gradient(90deg,#e8edfe,#f0f3ff);">🤖 AI分析: ' + escHtml(w.aiAnalysis) + '</div>' : '';
+
+    var imageHtml = '';
+    if (w.imageUrl) {
+      imageHtml = '<div class="wq-card-images"><img src="' + escHtml(w.imageUrl) + '" class="wq-image-thumb" onclick="window.open(this.src)" alt="错题图片"></div>';
+    }
+
+    var hasKey = !!deepSeekKey;
 
     return '<div class="wq-card' + (_wqPendingHighlightId === w.id ? ' highlight' : '') + '" id="wq-' + w.id + '">'
       + '<div class="wq-card-header">'
@@ -1461,14 +1606,18 @@ function renderWrongQuestions() {
         + (w.topic ? '<span class="wq-topic-tag">' + escHtml(w.topic) + '</span>' : '')
         + '<span class="mastery-tag ' + mastery.cls + '">' + mastery.label + '</span>'
         + '<div class="wq-actions">'
+          + (hasKey ? '<button class="btn-ai btn-sm" onclick="openAiGenerateModal(\'' + w.id + '\')" title="AI生成同类题">✨</button>' : '')
+          + (hasKey && !w.aiAnalysis ? '<button class="btn-ai btn-sm" onclick="aiAnalyzeReason(\'' + w.id + '\')" title="AI分析错因">🤖</button>' : '')
           + '<button class="btn-ghost btn-sm" onclick="cycleMasteryStatus(\'' + w.id + '\')">标记</button>'
           + '<button class="btn-ghost btn-sm" onclick="openWqEditModal(\'' + w.id + '\')">编辑</button>'
           + '<button class="btn-danger-text" onclick="deleteWrongQuestion(\'' + w.id + '\')">🗑</button>'
         + '</div>'
       + '</div>'
+      + imageHtml
       + '<div class="wq-question">' + escHtml(w.questionText) + '</div>'
       + answersHtml
       + reasonHtml
+      + aiAnalysisHtml
       + '<div class="wq-meta">'
         + (dateStr ? '<span>📅 ' + dateStr + '</span>' : '')
         + (w.notes ? '<span>📝 ' + escHtml(w.notes) + '</span>' : '')
@@ -1518,6 +1667,14 @@ async function addWrongQuestion() {
   var btn = document.querySelector('#wqAddFormContent .btn-primary');
   btn.disabled = true; btn.textContent = '⏳ 添加中...';
 
+  var imageUrl = '';
+  var fileInput = document.getElementById('wqInputImage');
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    var uploadResult = await uploadImage(fileInput.files[0]);
+    if (uploadResult) imageUrl = uploadResult;
+    else { showToast('图片上传失败，继续保存无图片版本'); }
+  }
+
   var id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
   var now = new Date().toISOString();
   var result = await sb.from('wrong_questions').insert({
@@ -1530,6 +1687,7 @@ async function addWrongQuestion() {
     mistake_reason: reason,
     mastery_status: mastery,
     notes: notes,
+    image_url: imageUrl,
     created_at: now,
     updated_at: now
   });
@@ -1547,6 +1705,9 @@ async function addWrongQuestion() {
   document.getElementById('wqInputCorrect').value = '';
   document.getElementById('wqInputReason').value = '';
   document.getElementById('wqInputNotes').value = '';
+  document.getElementById('wqInputImage').value = '';
+  document.getElementById('wqImagePreview').style.display = 'none';
+  document.getElementById('wqImagePreview').src = '';
   document.getElementById('wqInputTopic').focus();
 
   fetchWrongQuestions();
@@ -1596,6 +1757,7 @@ function openWqEditModal(wqId) {
   var wq = wqList.find(function(w) { return w.id === wqId; });
   if (!wq) return;
   _wqEditingId = wqId;
+  _wqEditingImageUrl = wq.imageUrl || '';
 
   document.getElementById('wqEditSubject').value = wq.subject;
   document.getElementById('wqEditTopic').value = wq.topic;
@@ -1606,16 +1768,47 @@ function openWqEditModal(wqId) {
   document.getElementById('wqEditReason').value = wq.mistakeReason;
   document.getElementById('wqEditNotes').value = wq.notes;
 
+  var preview = document.getElementById('wqEditImagePreview');
+  if (wq.imageUrl) {
+    preview.src = wq.imageUrl;
+    preview.style.display = 'block';
+  } else {
+    preview.src = '';
+    preview.style.display = 'none';
+  }
+
+  var aiBox = document.getElementById('wqEditAiAnalysisBox');
+  var aiText = document.getElementById('wqEditAiAnalysis');
+  if (wq.aiAnalysis) {
+    aiText.textContent = wq.aiAnalysis;
+    aiBox.style.display = 'block';
+  } else {
+    aiText.textContent = '';
+    aiBox.style.display = 'none';
+  }
+
   document.getElementById('wqEditModal').classList.add('show');
 }
 
 function closeWqEditModal() {
   document.getElementById('wqEditModal').classList.remove('show');
   _wqEditingId = null;
+  _wqEditingImageUrl = null;
+  document.getElementById('wqEditImage').value = '';
+  document.getElementById('wqEditImagePreview').style.display = 'none';
+  document.getElementById('wqEditImagePreview').src = '';
 }
 
 async function saveWqEdit() {
   if (!_wqEditingId) return;
+
+  var imageUrl = _wqEditingImageUrl || '';
+  var fileInput = document.getElementById('wqEditImage');
+  if (fileInput && fileInput.files && fileInput.files[0]) {
+    var uploadResult = await uploadImage(fileInput.files[0]);
+    if (uploadResult) imageUrl = uploadResult;
+    else { showToast('图片上传失败，保留原图片'); }
+  }
 
   var result = await sb.from('wrong_questions').update({
     subject: document.getElementById('wqEditSubject').value,
@@ -1626,6 +1819,7 @@ async function saveWqEdit() {
     correct_answer: document.getElementById('wqEditCorrect').value.trim(),
     mistake_reason: document.getElementById('wqEditReason').value.trim(),
     notes: document.getElementById('wqEditNotes').value.trim(),
+    image_url: imageUrl,
     updated_at: new Date().toISOString()
   }).eq('id', _wqEditingId);
 
@@ -1633,6 +1827,125 @@ async function saveWqEdit() {
   showToast('✅ 保存成功');
   closeWqEditModal();
   fetchWrongQuestions();
+}
+
+// ---- AI & Image Helpers ----
+function previewWqImage(input, previewId) {
+  var file = input.files && input.files[0];
+  var preview = document.getElementById(previewId);
+  if (!file || !preview) return;
+  var reader = new FileReader();
+  reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+  reader.readAsDataURL(file);
+}
+
+async function uploadImage(file) {
+  try {
+    var ext = file.name.split('.').pop() || 'jpg';
+    var name = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+    var path = name + '.' + ext;
+    var result = await sb.storage.from('wrong-question-images').upload(path, file, { contentType: file.type || 'image/jpeg' });
+    if (result.error) { console.error('upload error:', result.error); return null; }
+    var urlResult = sb.storage.from('wrong-question-images').getPublicUrl(path);
+    return urlResult.data.publicUrl;
+  } catch (e) { console.error('upload exception:', e); return null; }
+}
+
+// ---- DeepSeek Settings ----
+function openAiSettingsModal() {
+  document.getElementById('deepSeekKeyInput').value = deepSeekKey || '';
+  document.getElementById('aiSettingsModal').classList.add('show');
+}
+function closeAiSettingsModal() {
+  document.getElementById('aiSettingsModal').classList.remove('show');
+}
+function saveDeepSeekKey() {
+  var key = document.getElementById('deepSeekKeyInput').value.trim();
+  if (!key) { showToast('请输入 API Key'); return; }
+  deepSeekKey = key;
+  localStorage.setItem('deepSeekKey', key);
+  showToast('✅ API Key 已保存');
+  closeAiSettingsModal();
+  renderWrongQuestions();
+}
+
+// ---- DeepSeek API Call ----
+async function callDeepSeek(messages, onStream) {
+  if (!deepSeekKey) { showToast('请先配置 DeepSeek API Key'); return null; }
+  try {
+    var resp = await fetch('https://api.deepseek.com/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + deepSeekKey },
+      body: JSON.stringify({ model: 'deepseek-chat', messages: messages, stream: false })
+    });
+    if (!resp.ok) { showToast('AI 请求失败: ' + resp.status); return null; }
+    var data = await resp.json();
+    return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : null;
+  } catch (e) { console.error('deepseek error:', e); showToast('AI 请求出错'); return null; }
+}
+
+// ---- AI Analyze Reason ----
+async function aiAnalyzeReason(wqId) {
+  var wq = wqList.find(function(w) { return w.id === wqId; });
+  if (!wq) return;
+  var btn = document.querySelector('#wq-' + wqId + ' .btn-ai[title="AI分析错因"]');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
+
+  var prompt = '你是一位资深初中教学专家。请分析以下错题的错因，并给出简洁的总结（50字以内）。\n\n题目：' + wq.questionText + '\n';
+  if (wq.wrongAnswer) prompt += '学生答案：' + wq.wrongAnswer + '\n';
+  if (wq.correctAnswer) prompt += '正确答案：' + wq.correctAnswer + '\n';
+  prompt += '\n请分析：1. 这道题考查什么知识点；2. 学生为什么会做错；3. 避免再犯的建议。用中文回答，简洁。';
+
+  var result = await callDeepSeek([{ role: 'user', content: prompt }]);
+  if (btn) { btn.disabled = false; btn.textContent = '🤖'; }
+  if (!result) return;
+
+  var saveResult = await sb.from('wrong_questions').update({
+    ai_analysis: result,
+    updated_at: new Date().toISOString()
+  }).eq('id', wqId);
+
+  if (saveResult.error) { showToast('分析保存失败'); return; }
+  showToast('✅ AI 错因分析完成');
+  fetchWrongQuestions();
+}
+
+// ---- AI Generate Similar Questions ----
+function openAiGenerateModal(wqId) {
+  var wq = wqList.find(function(w) { return w.id === wqId; });
+  if (!wq) return;
+  _aiGeneratingWqId = wqId;
+  document.getElementById('aiGenOriginal').textContent = wq.questionText;
+  document.getElementById('aiGenResultRow').style.display = 'none';
+  document.getElementById('aiGenResult').innerHTML = '';
+  document.getElementById('aiGenBtn').disabled = false;
+  document.getElementById('aiGenBtn').textContent = '✨ 生成同类题';
+  document.getElementById('aiGenerateModal').classList.add('show');
+}
+function closeAiGenerateModal() {
+  document.getElementById('aiGenerateModal').classList.remove('show');
+  _aiGeneratingWqId = null;
+}
+async function doAiGenerate() {
+  if (!_aiGeneratingWqId) return;
+  var wq = wqList.find(function(w) { return w.id === _aiGeneratingWqId; });
+  if (!wq) return;
+
+  var count = parseInt(document.getElementById('aiGenCount').value) || 3;
+  var btn = document.getElementById('aiGenBtn');
+  btn.disabled = true; btn.textContent = '⏳ 生成中...';
+
+  var prompt = '你是一位资深初中教师。请根据以下题目生成' + count + '道同类型的练习题，难度相近或略高，帮助巩固该知识点。\n\n原题：' + wq.questionText + '\n';
+  if (wq.correctAnswer) prompt += '正确答案：' + wq.correctAnswer + '\n';
+  if (wq.topic) prompt += '知识点：' + wq.topic + '\n';
+  prompt += '\n要求：1. 每道题给出题目和答案；2. 标注考查的具体知识点；3. 用中文回答；4. 格式清晰。';
+
+  var result = await callDeepSeek([{ role: 'user', content: prompt }]);
+  btn.disabled = false; btn.textContent = '✨ 生成同类题';
+  if (!result) return;
+
+  document.getElementById('aiGenResult').innerHTML = '<div style="white-space:pre-wrap;word-break:break-word;">' + escHtml(result) + '</div>';
+  document.getElementById('aiGenResultRow').style.display = 'block';
 }
 
 </script>
