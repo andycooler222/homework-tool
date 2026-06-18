@@ -6,7 +6,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>📚 学生日常作业管理</title>
+<title>📚 学生作业管理</title>
 <link rel="preconnect" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://eyqbflykrgnopqxncyzl.supabase.co">
 <link rel="dns-prefetch" href="https://eyqbflykrgnopqxncyzl.supabase.co">
@@ -22,6 +22,7 @@
   --success: #27ae60;
   --success-light: #eafaf1;
   --warning: #f39c12;
+  --warning-light: #fef9e7;
   --danger: #e74c3c;
   --danger-light: #fdedec;
   --border: #e8ecf1;
@@ -35,6 +36,7 @@ body {
   min-height: 100vh; line-height: 1.6;
 }
 .container { max-width: 820px; margin: 0 auto; padding: 12px 16px 24px; }
+.app-footer { text-align: center; font-size: 11px; color: var(--text-secondary); padding: 20px 0 8px; opacity: 0.6; }
 
 /* Buttons */
 .btn {
@@ -107,6 +109,21 @@ body {
 .progress-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; min-width: 50px; }
 .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--success)); border-radius: 4px; transition: width 0.5s ease; width: 0%; }
 .progress-label { font-size: 12px; font-weight: 700; color: var(--primary); white-space: nowrap; min-width: 30px; }
+
+/* Tab Navigation */
+.tab-nav {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  padding: 0 16px;
+}
+.tab-btn {
+  padding: 8px 16px; border: none; background: none;
+  font-size: 13px; font-weight: 600; cursor: pointer;
+  color: var(--text-secondary); border-bottom: 2.5px solid transparent;
+  transition: color 0.2s, border-color 0.2s;
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.tab-btn:hover { color: var(--primary); }
+.tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
 
 /* Filter Bar */
 .filter-bar {
@@ -214,13 +231,105 @@ body {
 .form-group { display: flex; flex-direction: column; gap: 3px; min-width: 80px; }
 .form-group.name-field { flex: 1; min-width: 130px; }
 .form-group label { font-size: 10px; font-weight: 500; color: var(--text-secondary); }
-.form-group input, .form-group select {
+.form-group input, .form-group select, .form-group textarea {
   padding: 6px 8px; border: 2px solid var(--border);
   border-radius: 6px; font-size: 13px; color: var(--text);
   background: var(--bg); outline: none; transition: border-color 0.2s;
+  font-family: inherit;
 }
-.form-group input:focus, .form-group select:focus { border-color: var(--primary); }
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--primary); }
 .form-group select { width: 95px; }
+.form-group textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
+
+/* ===== Wrong Question Book Styles ===== */
+.wq-section { display: none; }
+.wq-section.active { display: block; }
+
+.wq-header-bar {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  margin-bottom: 8px;
+}
+.wq-subject-filter {
+  display: flex; gap: 4px; flex-wrap: wrap;
+}
+.wq-subject-chip {
+  padding: 2px 8px; border-radius: 12px;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--card-bg); color: var(--text-secondary);
+  transition: all 0.2s;
+}
+.wq-subject-chip:hover { border-color: var(--primary); color: var(--primary); }
+.wq-subject-chip.active { border-color: var(--primary); background: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+.wq-list { display: flex; flex-direction: column; gap: 4px; }
+.wq-card {
+  background: var(--card-bg); border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  border: 1.5px solid transparent;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.wq-card:hover { box-shadow: var(--shadow); border-color: var(--border); }
+.wq-card.highlight {
+  animation: wqHighlight 0.6s ease-out 1;
+  border-color: var(--primary);
+}
+@keyframes wqHighlight {
+  0% { background: var(--primary-light); }
+  100% { background: var(--card-bg); }
+}
+.wq-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.wq-topic-tag {
+  display: inline-block; padding: 1px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+  background: var(--primary-light); color: var(--primary);
+}
+.mastery-tag {
+  display: inline-block; padding: 1px 8px; border-radius: 6px;
+  font-size: 10px; font-weight: 600;
+}
+.mastery-unmastered { background: var(--danger-light); color: var(--danger); }
+.mastery-reviewing { background: var(--warning-light); color: var(--warning); }
+.mastery-mastered { background: var(--success-light); color: var(--success); }
+
+.wq-question {
+  font-size: 13px; font-weight: 600; line-height: 1.5;
+  margin-bottom: 4px; word-break: break-word;
+}
+.wq-answers {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  font-size: 12px; color: var(--text-secondary); margin-bottom: 4px;
+}
+.wq-answers .wrong { color: var(--danger); }
+.wq-answers .correct { color: var(--success); }
+.wq-reason {
+  font-size: 12px; color: var(--text-secondary); line-height: 1.5;
+  background: var(--bg); border-radius: 6px; padding: 4px 8px;
+  margin-bottom: 4px;
+}
+.wq-meta {
+  display: flex; gap: 8px; align-items: center;
+  font-size: 11px; color: var(--text-secondary);
+  flex-wrap: wrap;
+}
+.wq-actions {
+  display: flex; gap: 3px; align-items: center; margin-left: auto;
+}
+
+.wq-stats-bar {
+  display: flex; gap: 12px; align-items: center;
+  margin-bottom: 8px; font-size: 12px; color: var(--text-secondary);
+}
+.wq-stats-bar strong { color: var(--text); font-size: 15px; }
+
+/* Modal for WQ Edit */
+.modal.wq-modal { max-width: 420px; }
+.modal.wq-modal .form-group textarea { width: 100%; min-height: 50px; }
+.modal.wq-modal .form-row { margin-bottom: 8px; }
+.modal.wq-modal .form-group { flex: 1; min-width: 120px; }
 
 /* Modal */
 .modal-overlay {
@@ -337,6 +446,9 @@ body {
   .week-day .day-name { font-size: 10px; }
   .add-toggle { padding: 8px 10px; font-size: 12px; }
   .add-form-content { padding: 0 10px 8px; }
+  .tab-btn { padding: 6px 10px; font-size: 12px; }
+  .wq-card { padding: 8px 10px; }
+  .wq-answers { gap: 8px; }
 }
 
 @media (max-width: 420px) {
@@ -369,6 +481,12 @@ body {
   .week-day .day-count { font-size: 9px; }
   .week-nav { width: 24px; height: 24px; font-size: 12px; }
   .week-days { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab-btn { font-size: 11px; padding: 5px 8px; }
+  .wq-card { padding: 6px 8px; }
+  .wq-question { font-size: 12px; }
+  .wq-answers { font-size: 11px; }
+  .wq-reason { font-size: 11px; }
+  .modal.wq-modal { max-width: 95%; }
 }
 
 </style>
@@ -380,11 +498,11 @@ body {
   <div class="header">
     <div class="header-top">
       <div>
-        <h1>📚 作业管理</h1>
+        <h1 id="appTitle">📚 作业管理</h1>
         <div class="date-label" id="dateLabel"></div>
       </div>
       <button class="btn-today" id="btnToday" onclick="goToToday()" title="返回今天">📍 今天</button>
-      <div class="header-stats">
+      <div class="header-stats" id="hwStats">
         <span class="stat-text">共 <strong id="statTotal">0</strong> 项</span>
         <span class="stat-text">已完成 <strong id="statDone">0</strong></span>
         <div class="progress-wrap">
@@ -392,7 +510,7 @@ body {
           <span class="progress-label" id="statRate">0%</span>
         </div>
       </div>
-      <div class="filter-bar">
+      <div class="filter-bar" id="hwFilterBar">
         <div class="filter-chip active" data-filter="all" onclick="setFilter('all')">
           全部<span class="count" id="countAll">0</span>
         </div>
@@ -404,52 +522,171 @@ body {
         </div>
       </div>
     </div>
+    <!-- Tab Navigation -->
+    <div class="tab-nav" id="tabNav">
+      <button class="tab-btn active" data-tab="homework" onclick="switchTab('homework')">📋 作业</button>
+      <button class="tab-btn" data-tab="wrongq" onclick="switchTab('wrongq')">📝 错题本</button>
+    </div>
     <div class="week-strip" id="weekStrip"></div>
   </div>
 
-  <!-- HW List -->
-  <div class="hw-list" id="hwList"></div>
+  <!-- ===== HOMEWORK SECTION ===== -->
+  <div class="hw-section" id="hwSection">
+    <!-- HW List -->
+    <div class="hw-list" id="hwList"></div>
 
-  <!-- Add Form -->
-  <div class="add-card">
-    <button class="add-toggle" id="addToggle" onclick="toggleAddForm()">
-      <span>➕ 添加作业</span>
-      <span class="toggle-arrow">▼</span>
-    </button>
-    <div class="add-form-content" id="addFormContent">
-      <div class="form-row">
-        <div class="form-group name-field">
-          <label for="inputName">作业名称</label>
-          <input type="text" id="inputName" placeholder="例如：数学练习册 P32-35">
-        </div>
-        <div class="form-group">
-          <label for="inputSubject">科目</label>
-          <select id="inputSubject">
-            <option value="math">📐 数学</option>
-            <option value="chinese">📖 语文</option>
-            <option value="english">🌍 英语</option>
-            <option value="science">🔬 科学</option>
-            <option value="pe">🏃 体育</option>
-            <option value="history">📜 历史</option>
-            <option value="other">📋 其他</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="inputDate">日期</label>
-          <input type="date" id="inputDate">
-        </div>
-        <div class="form-group">
-          <label for="inputEstimate">预估分钟</label>
-          <input type="number" id="inputEstimate" min="1" max="480" value="30" style="width:72px;">
-        </div>
-        <div style="display:flex;gap:8px;align-self:flex-end;">
-          <button class="btn btn-primary" onclick="addHomework()">➕ 添加</button>
-          <button class="btn btn-ghost" onclick="toggleAddForm()">收起</button>
+    <!-- Add Form -->
+    <div class="add-card">
+      <button class="add-toggle" id="addToggle" onclick="toggleAddForm()">
+        <span>➕ 添加作业</span>
+        <span class="toggle-arrow">▼</span>
+      </button>
+      <div class="add-form-content" id="addFormContent">
+        <div class="form-row">
+          <div class="form-group name-field">
+            <label for="inputName">作业名称</label>
+            <input type="text" id="inputName" placeholder="例如：数学练习册 P32-35">
+          </div>
+          <div class="form-group">
+            <label for="inputSubject">科目</label>
+            <select id="inputSubject">
+              <option value="math">📐 数学</option>
+              <option value="chinese">📖 语文</option>
+              <option value="english">🌍 英语</option>
+              <option value="science">🔬 科学</option>
+              <option value="pe">🏃 体育</option>
+              <option value="history">📜 历史</option>
+              <option value="other">📋 其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="inputDate">日期</label>
+            <input type="date" id="inputDate">
+          </div>
+          <div class="form-group">
+            <label for="inputEstimate">预估分钟</label>
+            <input type="number" id="inputEstimate" min="1" max="480" value="30" style="width:72px;">
+          </div>
+          <div style="display:flex;gap:8px;align-self:flex-end;">
+            <button class="btn btn-primary" onclick="addHomework()">➕ 添加</button>
+            <button class="btn btn-ghost" onclick="toggleAddForm()">收起</button>
+          </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- ===== WRONG QUESTION SECTION ===== -->
+  <div class="wq-section" id="wqSection">
+    <!-- WQ Stats -->
+    <div class="wq-stats-bar" id="wqStatsBar">
+      <span class="stat-text">共 <strong id="wqStatTotal">0</strong> 道</span>
+      <span class="stat-text">未掌握 <strong id="wqStatUnmastered" style="color:var(--danger)">0</strong></span>
+      <span class="stat-text">复习中 <strong id="wqStatReviewing" style="color:var(--warning)">0</strong></span>
+      <span class="stat-text">已掌握 <strong id="wqStatMastered" style="color:var(--success)">0</strong></span>
+      <div class="filter-bar" style="margin-left:auto;">
+        <div class="filter-chip active" data-wq-filter="all" onclick="setWqFilter('all')">
+          全部<span class="count" id="wqCountAll">0</span>
+        </div>
+        <div class="filter-chip" data-wq-filter="unmastered" onclick="setWqFilter('unmastered')">
+          未掌握<span class="count" id="wqCountUnmastered">0</span>
+        </div>
+        <div class="filter-chip" data-wq-filter="reviewing" onclick="setWqFilter('reviewing')">
+          复习中<span class="count" id="wqCountReviewing">0</span>
+        </div>
+        <div class="filter-chip" data-wq-filter="mastered" onclick="setWqFilter('mastered')">
+          已掌握<span class="count" id="wqCountMastered">0</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Subject Filter -->
+    <div class="wq-header-bar">
+      <div class="wq-subject-filter" id="wqSubjectFilter">
+        <div class="wq-subject-chip active" data-subject="all" onclick="setWqSubjectFilter('all')">全部</div>
+        <div class="wq-subject-chip" data-subject="math" onclick="setWqSubjectFilter('math')">📐 数学</div>
+        <div class="wq-subject-chip" data-subject="chinese" onclick="setWqSubjectFilter('chinese')">📖 语文</div>
+        <div class="wq-subject-chip" data-subject="english" onclick="setWqSubjectFilter('english')">🌍 英语</div>
+        <div class="wq-subject-chip" data-subject="science" onclick="setWqSubjectFilter('science')">🔬 科学</div>
+        <div class="wq-subject-chip" data-subject="history" onclick="setWqSubjectFilter('history')">📜 历史</div>
+        <div class="wq-subject-chip" data-subject="other" onclick="setWqSubjectFilter('other')">📋 其他</div>
+      </div>
+    </div>
+
+    <!-- WQ List -->
+    <div class="wq-list" id="wqList"></div>
+
+    <!-- Add WQ Form -->
+    <div class="add-card">
+      <button class="add-toggle" id="wqAddToggle" onclick="toggleWqAddForm()">
+        <span>➕ 添加错题</span>
+        <span class="toggle-arrow" id="wqToggleArrow">▼</span>
+      </button>
+      <div class="add-form-content" id="wqAddFormContent">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wqInputSubject">科目</label>
+            <select id="wqInputSubject">
+              <option value="math">📐 数学</option>
+              <option value="chinese">📖 语文</option>
+              <option value="english">🌍 英语</option>
+              <option value="science">🔬 科学</option>
+              <option value="history">📜 历史</option>
+              <option value="other">📋 其他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="wqInputTopic">知识点/章节</label>
+            <input type="text" id="wqInputTopic" placeholder="例如：一元二次方程">
+          </div>
+          <div class="form-group">
+            <label for="wqInputMastery">掌握状态</label>
+            <select id="wqInputMastery">
+              <option value="unmastered">未掌握</option>
+              <option value="reviewing">复习中</option>
+              <option value="mastered">已掌握</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group name-field">
+            <label for="wqInputQuestion">题目内容</label>
+            <textarea id="wqInputQuestion" placeholder="粘贴或输入题目内容"></textarea>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="wqInputWrong">错误答案</label>
+            <input type="text" id="wqInputWrong" placeholder="我的答案">
+          </div>
+          <div class="form-group">
+            <label for="wqInputCorrect">正确答案</label>
+            <input type="text" id="wqInputCorrect" placeholder="正确答案">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group name-field">
+            <label for="wqInputReason">错因分析</label>
+            <input type="text" id="wqInputReason" placeholder="为什么做错了？">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group name-field">
+            <label for="wqInputNotes">备注</label>
+            <input type="text" id="wqInputNotes" placeholder="补充说明（可选）">
+          </div>
+        </div>
+        <div class="form-row" style="margin-top:4px;">
+          <button class="btn btn-primary" onclick="addWrongQuestion()">➕ 添加错题</button>
+          <button class="btn btn-ghost" onclick="toggleWqAddForm()">收起</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<footer class="app-footer">v1.7.0</footer>
 
 <!-- Complete Modal -->
 <div class="modal-overlay" id="completeModal">
@@ -489,14 +726,104 @@ body {
   </div>
 </div>
 
+<!-- Edit WQ Modal -->
+<div class="modal-overlay" id="wqEditModal">
+  <div class="modal wq-modal">
+    <h3>✏️ 编辑错题</h3>
+    <div class="form-row">
+      <div class="form-group">
+        <label>科目</label>
+        <select id="wqEditSubject">
+          <option value="math">📐 数学</option>
+          <option value="chinese">📖 语文</option>
+          <option value="english">🌍 英语</option>
+          <option value="science">🔬 科学</option>
+          <option value="history">📜 历史</option>
+          <option value="other">📋 其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>知识点</label>
+        <input type="text" id="wqEditTopic">
+      </div>
+      <div class="form-group">
+        <label>掌握状态</label>
+        <select id="wqEditMastery">
+          <option value="unmastered">未掌握</option>
+          <option value="reviewing">复习中</option>
+          <option value="mastered">已掌握</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>题目内容</label>
+        <textarea id="wqEditQuestion"></textarea>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>错误答案</label>
+        <input type="text" id="wqEditWrong">
+      </div>
+      <div class="form-group">
+        <label>正确答案</label>
+        <input type="text" id="wqEditCorrect">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>错因分析</label>
+        <input type="text" id="wqEditReason">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1;min-width:100%;">
+        <label>备注</label>
+        <input type="text" id="wqEditNotes">
+      </div>
+    </div>
+    <div class="modal-buttons">
+      <button class="btn btn-outline" onclick="closeWqEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveWqEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <div id="toast" class="toast"></div>
 <script>
-// ---- Supabase ----
+// ============================================================
+// GLOBAL
+// ============================================================
+let currentTab = 'homework';
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  document.getElementById('hwSection').classList.toggle('active', tab === 'homework');
+  document.getElementById('wqSection').classList.toggle('active', tab === 'wrongq');
+  document.getElementById('weekStrip').style.display = tab === 'homework' ? 'flex' : 'none';
+  document.getElementById('hwStats').style.display = tab === 'homework' ? 'flex' : 'none';
+  document.getElementById('hwFilterBar').style.display = tab === 'homework' ? 'flex' : 'none';
+  document.getElementById('appTitle').textContent = tab === 'homework' ? '📚 作业管理' : '📚 错题本';
+  document.getElementById('dateLabel').style.display = tab === 'homework' ? 'block' : 'none';
+  document.getElementById('btnToday').style.display = (tab === 'homework' && currentDate !== TODAY_DATE) ? 'inline-flex' : 'none';
+
+  if (tab === 'wrongq') {
+    fetchWrongQuestions();
+  }
+}
+
+// ============================================================
+// SUPABASE
+// ============================================================
 const SB_URL = 'https://eyqbflykrgnopqxncyzl.supabase.co';
 const SB_KEY = 'sb_publishable_dIqF0694gYRmNvEdeVspUg_VJmjLeLE';
 const sb = supabase.createClient(SB_URL, SB_KEY);
-// 使用本地时间获取今天日期，避免UTC与东八区时差导致日期错误
+
 function getLocalDateStr(date) {
   var d = date || new Date();
   var y = d.getFullYear();
@@ -505,7 +832,7 @@ function getLocalDateStr(date) {
   return y + '-' + m + '-' + day;
 }
 const TODAY_DATE = getLocalDateStr();
-let currentDate = TODAY_DATE;  // 当前查看的日期，可以切换
+let currentDate = TODAY_DATE;
 
 let hwList = [];
 let weekData = {};
@@ -516,28 +843,27 @@ let timerSeconds = 0;
 let timerRunning = false;
 let syncOnline = false;
 let realtimeChannel = null;
-let initialFetchDone = false;  // 防止初始化时触发两次 fetch
-let confirming = false;       // 防止 confirmComplete 双击
-let _lastFetchTs = 0;         // 防止 realtime 和显式 fetch 双次查询
-let _weekFetching = false;    // 防止 fetchWeekOverview 并发堆积
-let _pendingHighlightId = null; // 新添加条目高亮
-let _celebratedDate = null;    // 防止同一天重复庆祝
+let initialFetchDone = false;
+let confirming = false;
+let _lastFetchTs = 0;
+let _weekFetching = false;
+let _pendingHighlightId = null;
+let _celebratedDate = null;
 
-// ---- Real-time sync ----
-function setupRealtime() {
-  if (realtimeChannel) {
-    sb.removeChannel(realtimeChannel);
-  }
-  realtimeChannel = sb.channel('hw-sync-' + currentDate)
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'homework', filter: 'date=eq.' + currentDate }, function() {
-      if (!initialFetchDone) return;  // 首次加载跳过
-      if (Date.now() - _lastFetchTs < 800) return; // 800ms 内有显式 fetch 则跳过
-      fetchHomeworks();
-    })
-    .subscribe(function(status) {
-      if (status === 'SUBSCRIBED') console.log('🔗 实时同步已连接 (' + currentDate + ')');
-    });
-}
+// ---- Wrong Questions ----
+let wqList = [];
+let wqFilter = 'all';
+let wqSubjectFilter = 'all';
+let wqSyncOnline = false;
+let _wqPendingHighlightId = null;
+let _wqEditingId = null;
+
+const MASTERY_MAP = {
+  unmastered: { label: '未掌握', cls: 'mastery-unmastered' },
+  reviewing: { label: '复习中', cls: 'mastery-reviewing' },
+  mastered: { label: '已掌握', cls: 'mastery-mastered' }
+};
+
 const SUBJECT_MAP = {
   math: { name: '数学', icon: '📐', cls: 'subject-math' },
   chinese: { name: '语文', icon: '📖', cls: 'subject-chinese' },
@@ -547,6 +873,22 @@ const SUBJECT_MAP = {
   pe: { name: '体育', icon: '🏃', cls: 'subject-pe' },
   other: { name: '其他', icon: '📋', cls: 'subject-other' },
 };
+
+// ---- Real-time sync ----
+function setupRealtime() {
+  if (realtimeChannel) {
+    sb.removeChannel(realtimeChannel);
+  }
+  realtimeChannel = sb.channel('hw-sync-' + currentDate)
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'homework', filter: 'date=eq.' + currentDate }, function() {
+      if (!initialFetchDone) return;
+      if (Date.now() - _lastFetchTs < 800) return;
+      fetchHomeworks();
+    })
+    .subscribe(function(status) {
+      if (status === 'SUBSCRIBED') console.log('🔗 实时同步已连接 (' + currentDate + ')');
+    });
+}
 
 // ---- Data Fetch ----
 async function fetchHomeworks() {
@@ -566,17 +908,14 @@ async function fetchHomeworks() {
 }
 
 function render() {
-  // 缓存完成项，避免 updateHeader/updateFilterCounts 各遍历一次
   var doneItems = hwList.filter(function(h) { return h.completed; });
   updateHeader(doneItems);
   updateFilterCounts(doneItems);
   renderList();
-  // 全部完成庆祝（当天首次）
   if (hwList.length > 0 && doneItems.length === hwList.length && _celebratedDate !== currentDate) {
     _celebratedDate = currentDate;
     setTimeout(function() { celebrate(); }, 400);
   }
-  // 新添加条目高亮滚动
   if (_pendingHighlightId) {
     var el = document.getElementById('hw-' + _pendingHighlightId);
     if (el) {
@@ -599,7 +938,6 @@ function updateHeader(doneItems) {
   dateStr += (syncOnline ? ' ☁️' : ' ⚠️离线');
   document.getElementById('dateLabel').textContent = dateStr;
 
-  // 返回今天按钮：不在今天时显示
   var btnToday = document.getElementById('btnToday');
   if (btnToday) btnToday.style.display = (currentDate === TODAY_DATE) ? 'none' : 'inline-flex';
   var total = hwList.length;
@@ -609,7 +947,6 @@ function updateHeader(doneItems) {
   document.getElementById('statDone').textContent = done;
   document.getElementById('progressFill').style.width = pct + '%';
   document.getElementById('statRate').textContent = pct + '%';
-  // 100% 时进度条变纯绿色
   document.getElementById('progressFill').style.background = (pct === 100 && total > 0)
     ? 'var(--success)' : 'linear-gradient(90deg, var(--primary), var(--success))';
 }
@@ -631,10 +968,10 @@ function setFilter(filter) {
 }
 
 function renderList() {
-  var items = hwList.slice(); // 拷贝一份，避免影响原数组
+  var items = hwList.slice();
   if (currentFilter === 'done') items = items.filter(function(h) { return h.completed; });
   else if (currentFilter === 'todo') items = items.filter(function(h) { return !h.completed; });
-  else items.sort(function(a, b) { return (a.completed ? 1 : 0) - (b.completed ? 1 : 0); }); // 待完成在前
+  else items.sort(function(a, b) { return (a.completed ? 1 : 0) - (b.completed ? 1 : 0); });
 
   var container = document.getElementById('hwList');
 
@@ -718,7 +1055,7 @@ function getEncourageMsg(total, done) {
 // ---- Week Overview ----
 function getWeekRange(dateStr) {
   var d = new Date(dateStr + 'T00:00:00');
-  var day = d.getDay(); // 0=Sun
+  var day = d.getDay();
   var monday = new Date(d);
   monday.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
   var days = [];
@@ -732,7 +1069,7 @@ function getWeekRange(dateStr) {
 
 async function fetchWeekOverview() {
   if (!syncOnline) return;
-  if (_weekFetching) return;  // 并发保护：上一个请求未完成则跳过
+  if (_weekFetching) return;
   _weekFetching = true;
   try {
     var range = getWeekRange(currentDate);
@@ -792,7 +1129,7 @@ function changeWeek(delta) {
   var target = new Date(range.days[0] + 'T00:00:00');
   target.setDate(target.getDate() + delta * 7);
   var newDate = getLocalDateStr(target);
-  // 限制：目标周周一不超过今天+30天
+
   var maxFuture = new Date(TODAY_DATE + 'T00:00:00');
   maxFuture.setDate(maxFuture.getDate() + 30);
   if (new Date(newDate + 'T00:00:00') > maxFuture) return;
@@ -800,7 +1137,7 @@ function changeWeek(delta) {
   updateHeader([]);
   document.getElementById('hwList').innerHTML = '<div class="empty-state"><div class="icon">⏳</div><h3>加载中...</h3></div>';
   setupRealtime();
-  fetchHomeworks();  // render() → fetchWeekOverview() → renderWeekStrip() 会自动刷新周条
+  fetchHomeworks();
 }
 
 function goToDate(dateStr) {
@@ -809,7 +1146,7 @@ function goToDate(dateStr) {
   updateHeader([]);
   document.getElementById('hwList').innerHTML = '<div class="empty-state"><div class="icon">⏳</div><h3>加载中...</h3></div>';
   setupRealtime();
-  fetchHomeworks();  // render() → fetchWeekOverview() → renderWeekStrip() 会自动刷新周条
+  fetchHomeworks();
 }
 
 function goToToday() {
@@ -820,7 +1157,7 @@ function goToToday() {
 // ---- 切换添加作业表单 ----
 function toggleAddForm() {
   var content = document.getElementById('addFormContent');
-  var arrow = document.querySelector('.toggle-arrow');
+  var arrow = document.querySelector('.add-toggle .toggle-arrow');
   var isOpen = content.classList.contains('open');
 
   if (isOpen) {
@@ -853,22 +1190,20 @@ async function addHomework() {
   if (result.error) { showToast('添加失败: ' + result.error.message); return; }
   showToast('✅ 添加成功！');
 
-  // 记录新条目用于高亮
   _pendingHighlightId = id;
 
   document.getElementById('inputName').value = '';
   document.getElementById('inputName').focus();
-  // 不收起表单，方便连续添加；保留科目、日期、预估时间
   if (targetDate !== currentDate) {
     currentDate = targetDate;
-    _weekFetching = false;  // 释放可能残留的并发锁，确保周条刷新
+    _weekFetching = false;
     setupRealtime();
   }
   fetchHomeworks();
 }
 
-// ---- Quick Complete（一键完成，用预估时间作为实际耗时）----
-var quickCompleting = {};  // 防止重复点击，key 为 hwId
+// ---- Quick Complete ----
+var quickCompleting = {};
 async function quickComplete(hwId) {
   if (quickCompleting[hwId]) return;
   quickCompleting[hwId] = true;
@@ -1017,7 +1352,6 @@ document.addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && document.activeElement === document.getElementById('inputName')) {
     e.preventDefault(); addHomework();
   }
-  // Escape 关闭所有 Modal
   if (e.key === 'Escape') {
     if (document.getElementById('completeModal').classList.contains('show')) {
       closeCompleteModal();
@@ -1025,27 +1359,282 @@ document.addEventListener('keydown', function(e) {
     if (document.getElementById('confirmModal').classList.contains('show')) {
       hideConfirm();
     }
+    if (document.getElementById('wqEditModal').classList.contains('show')) {
+      closeWqEditModal();
+    }
   }
 });
 
 // ---- Init ----
-// 设置日期选择器：默认今天，范围不限
 var dateInput = document.getElementById('inputDate');
 dateInput.value = TODAY_DATE;
-// 后端可存储任意日期，不做 min/max 限制
 
-// 点击遮罩关闭 Modal
 document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
   overlay.addEventListener('click', function(e) {
     if (e.target === overlay) {
       overlay.classList.remove('show');
       if (overlay.id === 'completeModal') { stopTimer(); completingHwId = null; }
+      if (overlay.id === 'wqEditModal') { _wqEditingId = null; }
     }
   });
 });
 
 setupRealtime();
 fetchHomeworks().then(function() { initialFetchDone = true; });
+
+// ============================================================
+// WRONG QUESTIONS
+// ============================================================
+
+async function fetchWrongQuestions() {
+  var result = await sb.from('wrong_questions').select('*').order('created_at', { ascending: false });
+  if (result.error) {
+    console.warn('wq fetch error:', result.error.message);
+    wqSyncOnline = false;
+    return;
+  }
+  wqSyncOnline = true;
+  wqList = (result.data || []).map(function(r) {
+    return {
+      id: r.id, subject: r.subject, topic: r.topic || '',
+      questionText: r.question_text || '', wrongAnswer: r.wrong_answer || '',
+      correctAnswer: r.correct_answer || '', mistakeReason: r.mistake_reason || '',
+      masteryStatus: r.mastery_status || 'unmastered', notes: r.notes || '',
+      createdAt: r.created_at, updatedAt: r.updated_at
+    };
+  });
+  renderWrongQuestions();
+}
+
+function renderWrongQuestions() {
+  var items = wqList.slice();
+
+  // Apply mastery filter
+  if (wqFilter !== 'all') {
+    items = items.filter(function(w) { return w.masteryStatus === wqFilter; });
+  }
+  // Apply subject filter
+  if (wqSubjectFilter !== 'all') {
+    items = items.filter(function(w) { return w.subject === wqSubjectFilter; });
+  }
+
+  // Update stats
+  var total = wqList.length;
+  var unmastered = wqList.filter(function(w) { return w.masteryStatus === 'unmastered'; }).length;
+  var reviewing = wqList.filter(function(w) { return w.masteryStatus === 'reviewing'; }).length;
+  var mastered = wqList.filter(function(w) { return w.masteryStatus === 'mastered'; }).length;
+
+  document.getElementById('wqStatTotal').textContent = total;
+  document.getElementById('wqStatUnmastered').textContent = unmastered;
+  document.getElementById('wqStatReviewing').textContent = reviewing;
+  document.getElementById('wqStatMastered').textContent = mastered;
+
+  document.getElementById('wqCountAll').textContent = total;
+  document.getElementById('wqCountUnmastered').textContent = unmastered;
+  document.getElementById('wqCountReviewing').textContent = reviewing;
+  document.getElementById('wqCountMastered').textContent = mastered;
+
+  var container = document.getElementById('wqList');
+  if (items.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📝</div><h3>还没有错题记录</h3><p>在下方添加第一道错题吧！</p></div>';
+    return;
+  }
+
+  container.innerHTML = items.map(function(w) {
+    var sub = SUBJECT_MAP[w.subject] || SUBJECT_MAP.other;
+    var mastery = MASTERY_MAP[w.masteryStatus] || MASTERY_MAP.unmastered;
+    var dateStr = w.createdAt ? new Date(w.createdAt).toLocaleDateString('zh-CN') : '';
+
+    var answersHtml = '';
+    if (w.wrongAnswer || w.correctAnswer) {
+      answersHtml = '<div class="wq-answers">'
+        + (w.wrongAnswer ? '<span class="wrong">❌ ' + escHtml(w.wrongAnswer) + '</span>' : '')
+        + (w.correctAnswer ? '<span class="correct">✅ ' + escHtml(w.correctAnswer) + '</span>' : '')
+        + '</div>';
+    }
+
+    var reasonHtml = w.mistakeReason ? '<div class="wq-reason">💡 ' + escHtml(w.mistakeReason) + '</div>' : '';
+
+    return '<div class="wq-card' + (_wqPendingHighlightId === w.id ? ' highlight' : '') + '" id="wq-' + w.id + '">'
+      + '<div class="wq-card-header">'
+        + '<span class="subject-tag ' + sub.cls + '">' + sub.icon + ' ' + sub.name + '</span>'
+        + (w.topic ? '<span class="wq-topic-tag">' + escHtml(w.topic) + '</span>' : '')
+        + '<span class="mastery-tag ' + mastery.cls + '">' + mastery.label + '</span>'
+        + '<div class="wq-actions">'
+          + '<button class="btn-ghost btn-sm" onclick="cycleMasteryStatus(\'' + w.id + '\')">标记</button>'
+          + '<button class="btn-ghost btn-sm" onclick="openWqEditModal(\'' + w.id + '\')">编辑</button>'
+          + '<button class="btn-danger-text" onclick="deleteWrongQuestion(\'' + w.id + '\')">🗑</button>'
+        + '</div>'
+      + '</div>'
+      + '<div class="wq-question">' + escHtml(w.questionText) + '</div>'
+      + answersHtml
+      + reasonHtml
+      + '<div class="wq-meta">'
+        + (dateStr ? '<span>📅 ' + dateStr + '</span>' : '')
+        + (w.notes ? '<span>📝 ' + escHtml(w.notes) + '</span>' : '')
+      + '</div>'
+    + '</div>';
+  }).join('');
+
+  if (_wqPendingHighlightId) {
+    var el = document.getElementById('wq-' + _wqPendingHighlightId);
+    if (el) {
+      setTimeout(function() {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+    _wqPendingHighlightId = null;
+  }
+}
+
+function setWqFilter(filter) {
+  wqFilter = filter;
+  document.querySelectorAll('[data-wq-filter]').forEach(function(el) { el.classList.remove('active'); });
+  var chip = document.querySelector('[data-wq-filter="' + filter + '"]');
+  if (chip) chip.classList.add('active');
+  renderWrongQuestions();
+}
+
+function setWqSubjectFilter(subject) {
+  wqSubjectFilter = subject;
+  document.querySelectorAll('#wqSubjectFilter .wq-subject-chip').forEach(function(el) { el.classList.remove('active'); });
+  var chip = document.querySelector('#wqSubjectFilter [data-subject="' + subject + '"]');
+  if (chip) chip.classList.add('active');
+  renderWrongQuestions();
+}
+
+async function addWrongQuestion() {
+  var subject = document.getElementById('wqInputSubject').value;
+  var topic = document.getElementById('wqInputTopic').value.trim();
+  var question = document.getElementById('wqInputQuestion').value.trim();
+  var wrongAnswer = document.getElementById('wqInputWrong').value.trim();
+  var correctAnswer = document.getElementById('wqInputCorrect').value.trim();
+  var reason = document.getElementById('wqInputReason').value.trim();
+  var notes = document.getElementById('wqInputNotes').value.trim();
+  var mastery = document.getElementById('wqInputMastery').value;
+
+  if (!question) { showToast('请输入题目内容'); return; }
+
+  var btn = document.querySelector('#wqAddFormContent .btn-primary');
+  btn.disabled = true; btn.textContent = '⏳ 添加中...';
+
+  var id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  var now = new Date().toISOString();
+  var result = await sb.from('wrong_questions').insert({
+    id: id,
+    subject: subject,
+    topic: topic,
+    question_text: question,
+    wrong_answer: wrongAnswer,
+    correct_answer: correctAnswer,
+    mistake_reason: reason,
+    mastery_status: mastery,
+    notes: notes,
+    created_at: now,
+    updated_at: now
+  });
+
+  btn.disabled = false; btn.textContent = '➕ 添加错题';
+  if (result.error) { showToast('添加失败: ' + result.error.message); console.error(result.error); return; }
+  showToast('✅ 错题添加成功！');
+
+  _wqPendingHighlightId = id;
+
+  // Clear inputs but keep subject and mastery
+  document.getElementById('wqInputTopic').value = '';
+  document.getElementById('wqInputQuestion').value = '';
+  document.getElementById('wqInputWrong').value = '';
+  document.getElementById('wqInputCorrect').value = '';
+  document.getElementById('wqInputReason').value = '';
+  document.getElementById('wqInputNotes').value = '';
+  document.getElementById('wqInputTopic').focus();
+
+  fetchWrongQuestions();
+}
+
+async function cycleMasteryStatus(wqId) {
+  var wq = wqList.find(function(w) { return w.id === wqId; });
+  if (!wq) return;
+  var next = { unmastered: 'reviewing', reviewing: 'mastered', mastered: 'unmastered' };
+  var newStatus = next[wq.masteryStatus] || 'unmastered';
+
+  var result = await sb.from('wrong_questions').update({
+    mastery_status: newStatus,
+    updated_at: new Date().toISOString()
+  }).eq('id', wqId);
+
+  if (result.error) { showToast('更新失败: ' + result.error.message); return; }
+  var label = MASTERY_MAP[newStatus].label;
+  showToast('已标记为「' + label + '」');
+  fetchWrongQuestions();
+}
+
+async function deleteWrongQuestion(wqId) {
+  showConfirm('确定要删除这道错题吗？', async function() {
+    var result = await sb.from('wrong_questions').delete().eq('id', wqId);
+    if (result.error) { showToast('删除失败: ' + result.error.message); return; }
+    showToast('删除成功');
+    fetchWrongQuestions();
+  });
+}
+
+function toggleWqAddForm() {
+  var content = document.getElementById('wqAddFormContent');
+  var arrow = document.getElementById('wqToggleArrow');
+  var isOpen = content.classList.contains('open');
+  if (isOpen) {
+    content.classList.remove('open');
+    arrow.classList.remove('open');
+  } else {
+    content.classList.add('open');
+    arrow.classList.add('open');
+  }
+}
+
+// ---- Edit WQ Modal ----
+function openWqEditModal(wqId) {
+  var wq = wqList.find(function(w) { return w.id === wqId; });
+  if (!wq) return;
+  _wqEditingId = wqId;
+
+  document.getElementById('wqEditSubject').value = wq.subject;
+  document.getElementById('wqEditTopic').value = wq.topic;
+  document.getElementById('wqEditMastery').value = wq.masteryStatus;
+  document.getElementById('wqEditQuestion').value = wq.questionText;
+  document.getElementById('wqEditWrong').value = wq.wrongAnswer;
+  document.getElementById('wqEditCorrect').value = wq.correctAnswer;
+  document.getElementById('wqEditReason').value = wq.mistakeReason;
+  document.getElementById('wqEditNotes').value = wq.notes;
+
+  document.getElementById('wqEditModal').classList.add('show');
+}
+
+function closeWqEditModal() {
+  document.getElementById('wqEditModal').classList.remove('show');
+  _wqEditingId = null;
+}
+
+async function saveWqEdit() {
+  if (!_wqEditingId) return;
+
+  var result = await sb.from('wrong_questions').update({
+    subject: document.getElementById('wqEditSubject').value,
+    topic: document.getElementById('wqEditTopic').value.trim(),
+    mastery_status: document.getElementById('wqEditMastery').value,
+    question_text: document.getElementById('wqEditQuestion').value.trim(),
+    wrong_answer: document.getElementById('wqEditWrong').value.trim(),
+    correct_answer: document.getElementById('wqEditCorrect').value.trim(),
+    mistake_reason: document.getElementById('wqEditReason').value.trim(),
+    notes: document.getElementById('wqEditNotes').value.trim(),
+    updated_at: new Date().toISOString()
+  }).eq('id', _wqEditingId);
+
+  if (result.error) { showToast('保存失败: ' + result.error.message); return; }
+  showToast('✅ 保存成功');
+  closeWqEditModal();
+  fetchWrongQuestions();
+}
+
 </script>
 </body>
 </html>
