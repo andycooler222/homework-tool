@@ -692,45 +692,11 @@ body {
               <option value="other">📋 其他</option>
             </select>
           </div>
-          <div class="form-group">
-            <label for="wqInputTopic">知识点/章节</label>
-            <input type="text" id="wqInputTopic" placeholder="例如：一元二次方程">
-          </div>
-          <div class="form-group">
-            <label for="wqInputMastery">掌握状态</label>
-            <select id="wqInputMastery">
-              <option value="unmastered">未掌握</option>
-              <option value="reviewing">复习中</option>
-              <option value="mastered">已掌握</option>
-            </select>
-          </div>
         </div>
         <div class="form-row">
           <div class="form-group name-field">
             <label for="wqInputQuestion">题目内容</label>
-            <textarea id="wqInputQuestion" placeholder="粘贴或输入题目内容"></textarea>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="wqInputWrong">错误答案</label>
-            <input type="text" id="wqInputWrong" placeholder="我的答案">
-          </div>
-          <div class="form-group">
-            <label for="wqInputCorrect">正确答案</label>
-            <input type="text" id="wqInputCorrect" placeholder="正确答案">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group name-field">
-            <label for="wqInputReason">错因分析</label>
-            <input type="text" id="wqInputReason" placeholder="为什么做错了？">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group name-field">
-            <label for="wqInputNotes">备注</label>
-            <input type="text" id="wqInputNotes" placeholder="补充说明（可选）">
+            <textarea id="wqInputQuestion" placeholder="粘贴题目内容（必填）"></textarea>
           </div>
         </div>
         <div class="form-row">
@@ -738,9 +704,10 @@ body {
             <label>题目图片</label>
             <div class="wq-image-upload" onclick="document.getElementById('wqInputImage').click()">
               <input type="file" id="wqInputImage" accept="image/*" onchange="previewWqImage(this, 'wqImagePreview')">
-              <span>📷 点击拍照或上传图片</span>
+              <span>📷 点击拍照或上传图片（可选）</span>
               <img id="wqImagePreview" class="wq-image-preview" style="display:none;">
             </div>
+            <button class="btn btn-ai" id="btnRecognize" style="margin-top:6px;width:100%;" onclick="recognizeImageText('wqInputImage')">🤖 识别图片中的题目</button>
           </div>
         </div>
         <div class="form-row" style="margin-top:4px;">
@@ -912,10 +879,19 @@ body {
 <div class="modal-overlay" id="aiSettingsModal">
   <div class="modal wq-modal">
     <h3>⚙️ AI 设置</h3>
-    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px;">配置 DeepSeek API Key 以启用 AI 分析错因和生成同类题功能。Key 仅保存在本地浏览器。</p>
-    <div class="setting-row">
-      <input type="password" id="deepSeekKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx">
-      <button class="btn btn-primary" onclick="saveDeepSeekKey()">保存</button>
+    <div style="margin-bottom:12px;">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>DeepSeek API Key</strong> — 用于分析错因、生成同类题</p>
+      <div class="setting-row">
+        <input type="password" id="deepSeekKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx">
+        <button class="btn btn-primary" onclick="saveDeepSeekKey()">保存</button>
+      </div>
+    </div>
+    <div style="margin-bottom:8px;">
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;"><strong>硅基流动 API Key</strong> — 用于拍照识别题目文字（可选，注册 siliconflow.cn 获取）</p>
+      <div class="setting-row">
+        <input type="password" id="siliconFlowKeyInput" placeholder="sk-xxxxxxxxxxxxxxxx">
+        <button class="btn btn-primary" onclick="saveSiliconFlowKey()">保存</button>
+      </div>
     </div>
     <div class="modal-buttons">
       <button class="btn btn-outline" onclick="closeAiSettingsModal()">关闭</button>
@@ -993,6 +969,7 @@ let _wqEditingId = null;
 let _wqEditingImageUrl = null;
 let _aiGeneratingWqId = null;
 let deepSeekKey = localStorage.getItem('deepSeekKey') || '';
+let siliconFlowKey = localStorage.getItem('siliconFlowKey') || '';
 
 const MASTERY_MAP = {
   unmastered: { label: '未掌握', cls: 'mastery-unmastered' },
@@ -1654,13 +1631,7 @@ function setWqSubjectFilter(subject) {
 
 async function addWrongQuestion() {
   var subject = document.getElementById('wqInputSubject').value;
-  var topic = document.getElementById('wqInputTopic').value.trim();
   var question = document.getElementById('wqInputQuestion').value.trim();
-  var wrongAnswer = document.getElementById('wqInputWrong').value.trim();
-  var correctAnswer = document.getElementById('wqInputCorrect').value.trim();
-  var reason = document.getElementById('wqInputReason').value.trim();
-  var notes = document.getElementById('wqInputNotes').value.trim();
-  var mastery = document.getElementById('wqInputMastery').value;
 
   if (!question) { showToast('请输入题目内容'); return; }
 
@@ -1680,14 +1651,9 @@ async function addWrongQuestion() {
   var result = await sb.from('wrong_questions').insert({
     id: id,
     subject: subject,
-    topic: topic,
     question_text: question,
-    wrong_answer: wrongAnswer,
-    correct_answer: correctAnswer,
-    mistake_reason: reason,
-    mastery_status: mastery,
-    notes: notes,
     image_url: imageUrl,
+    mastery_status: 'unmastered',
     created_at: now,
     updated_at: now
   });
@@ -1698,17 +1664,12 @@ async function addWrongQuestion() {
 
   _wqPendingHighlightId = id;
 
-  // Clear inputs but keep subject and mastery
-  document.getElementById('wqInputTopic').value = '';
+  // Clear inputs
   document.getElementById('wqInputQuestion').value = '';
-  document.getElementById('wqInputWrong').value = '';
-  document.getElementById('wqInputCorrect').value = '';
-  document.getElementById('wqInputReason').value = '';
-  document.getElementById('wqInputNotes').value = '';
   document.getElementById('wqInputImage').value = '';
   document.getElementById('wqImagePreview').style.display = 'none';
   document.getElementById('wqImagePreview').src = '';
-  document.getElementById('wqInputTopic').focus();
+  document.getElementById('wqInputQuestion').focus();
 
   fetchWrongQuestions();
 }
@@ -1854,6 +1815,7 @@ async function uploadImage(file) {
 // ---- DeepSeek Settings ----
 function openAiSettingsModal() {
   document.getElementById('deepSeekKeyInput').value = deepSeekKey || '';
+  document.getElementById('siliconFlowKeyInput').value = siliconFlowKey || '';
   document.getElementById('aiSettingsModal').classList.add('show');
 }
 function closeAiSettingsModal() {
@@ -1861,12 +1823,66 @@ function closeAiSettingsModal() {
 }
 function saveDeepSeekKey() {
   var key = document.getElementById('deepSeekKeyInput').value.trim();
-  if (!key) { showToast('请输入 API Key'); return; }
+  if (!key) { showToast('请输入 DeepSeek API Key'); return; }
   deepSeekKey = key;
   localStorage.setItem('deepSeekKey', key);
-  showToast('✅ API Key 已保存');
+  showToast('✅ DeepSeek Key 已保存');
   closeAiSettingsModal();
   renderWrongQuestions();
+}
+function saveSiliconFlowKey() {
+  var key = document.getElementById('siliconFlowKeyInput').value.trim();
+  if (!key) { showToast('请输入硅基流动 API Key'); return; }
+  siliconFlowKey = key;
+  localStorage.setItem('siliconFlowKey', key);
+  showToast('✅ 硅基流动 Key 已保存');
+  closeAiSettingsModal();
+}
+
+// ---- Qwen Vision API Call (SiliconFlow) ----
+async function callQwenVision(imageBase64, prompt) {
+  if (!siliconFlowKey) { showToast('请先配置硅基流动 API Key'); return null; }
+  try {
+    var resp = await fetch('https://api.siliconflow.cn/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + siliconFlowKey },
+      body: JSON.stringify({
+        model: 'Qwen/Qwen3.5-397B-A17B',
+        messages: [
+          {
+            role: 'user',
+            content: [
+              { type: 'text', text: prompt || '请识别图片中的题目内容，只输出题目文字，不要添加任何额外说明。如果是数学题，请保留公式格式。' },
+              { type: 'image_url', image_url: { url: imageBase64 } }
+            ]
+          }
+        ],
+        stream: false
+      })
+    });
+    if (!resp.ok) { showToast('视觉识别失败: ' + resp.status); return null; }
+    var data = await resp.json();
+    return data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : null;
+  } catch (e) { console.error('qwen vision error:', e); showToast('视觉识别出错'); return null; }
+}
+
+async function recognizeImageText(inputId) {
+  var input = document.getElementById(inputId);
+  if (!input || !input.files || !input.files[0]) { showToast('请先上传图片'); return; }
+  var file = input.files[0];
+  var reader = new FileReader();
+  reader.onload = async function(e) {
+    var base64 = e.target.result;
+    showToast('🤖 正在识别图片中的题目...');
+    var result = await callQwenVision(base64, '请识别图片中的题目内容，只输出题目文字，不要添加任何额外说明。如果是数学题，请保留公式格式。');
+    if (result) {
+      document.getElementById('wqInputQuestion').value = result.trim();
+      showToast('✅ 题目识别成功！');
+    } else {
+      showToast('❌ 识别失败，请手动输入');
+    }
+  };
+  reader.readAsDataURL(file);
 }
 
 // ---- DeepSeek API Call ----
