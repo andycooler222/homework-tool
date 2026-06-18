@@ -337,15 +337,24 @@ body {
   max-width: 100%; max-height: 120px; border-radius: 6px;
   margin-top: 4px; display: block; border: 1px solid var(--border);
 }
+.wq-recognize-preview {
+  width: 100%; padding: 10px; border: 1px dashed var(--border);
+  border-radius: 8px; font-size: 13px; background: var(--card-bg);
+  color: var(--text-secondary); resize: vertical; font-family: monospace;
+  margin-top: 6px;
+}
 
 /* AI Buttons */
 .btn-ai {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #fff; font-size: 11px; padding: 3px 8px;
-  border: none; border-radius: 6px; cursor: pointer; font-weight: 600;
+  background: var(--card-bg); color: var(--text);
+  font-size: 11px; padding: 3px 8px;
+  border: 1.5px solid var(--border); border-radius: 6px; cursor: pointer; font-weight: 600;
 }
-.btn-ai:hover { opacity: 0.9; }
+.btn-ai:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
 .btn-ai:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ai-lg {
+  font-size: 14px; padding: 10px 16px; border-radius: 8px;
+}
 
 /* AI Result Modal */
 .ai-result-box {
@@ -373,6 +382,9 @@ body {
 }
 .wq-actions {
   display: flex; gap: 3px; align-items: center; margin-left: auto;
+}
+.wq-actions-row {
+  display: flex; gap: 3px; align-items: center;
 }
 
 .wq-stats-bar {
@@ -505,6 +517,16 @@ body {
   .tab-btn { padding: 6px 10px; font-size: 12px; }
   .wq-card { padding: 8px 10px; }
   .wq-answers { gap: 8px; }
+  .wq-stats-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .wq-stats-bar .filter-bar { margin-left: 0; width: 100%; justify-content: flex-start; }
+  .wq-header-bar { gap: 4px; }
+  .wq-subject-chip { padding: 2px 6px; font-size: 10px; }
+  .wq-card-header { flex-wrap: wrap; gap: 4px; }
+  .wq-actions { margin-left: 0; width: 100%; justify-content: flex-end; margin-top: 6px; gap: 8px; flex-direction: column; align-items: flex-end; }
+  .wq-actions-row { gap: 8px; }
+  .wq-actions .btn-ai, .wq-actions .btn-ghost, .wq-actions .btn-danger-text { padding: 5px 10px; font-size: 11px; min-height: 32px; }
+  .wq-image-thumb { max-height: 120px; }
+  .btn-ai { font-size: 10px; padding: 2px 6px; }
 }
 
 @media (max-width: 420px) {
@@ -542,66 +564,21 @@ body {
   .wq-question { font-size: 12px; }
   .wq-answers { font-size: 11px; }
   .wq-reason { font-size: 11px; }
+  .wq-stats-bar { gap: 6px; font-size: 11px; }
+  .wq-stats-bar strong { font-size: 13px; }
+  .wq-subject-chip { padding: 1px 5px; font-size: 9px; border-radius: 10px; }
+  .wq-card-header { gap: 3px; margin-bottom: 4px; }
+  .wq-topic-tag, .mastery-tag { font-size: 9px; padding: 0px 5px; }
+  .wq-actions { gap: 6px; margin-left: 0; margin-top: 4px; flex-direction: column; align-items: flex-end; }
+  .wq-actions-row { gap: 6px; }
+  .wq-actions .btn-ai, .wq-actions .btn-ghost, .wq-actions .btn-danger-text { padding: 4px 8px; font-size: 10px; min-height: 28px; }
+  .btn-ai { font-size: 9px; padding: 2px 5px; }
   .modal.wq-modal { max-width: 95%; }
 }
 
-/* Password Overlay */
-.password-overlay {
-  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 99999; transition: opacity 0.4s, visibility 0.4s;
-}
-.password-overlay.hidden {
-  opacity: 0; visibility: hidden; pointer-events: none;
-}
-.password-card {
-  background: var(--card-bg); padding: 32px; border-radius: var(--radius);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.3); text-align: center;
-  max-width: 320px; width: 90%;
-}
-.password-card h2 {
-  font-size: 20px; margin-bottom: 8px; color: var(--text);
-}
-.password-card p {
-  font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;
-}
-.password-input {
-  width: 100%; padding: 10px 14px; border: 2px solid var(--border);
-  border-radius: 8px; font-size: 14px; margin-bottom: 12px;
-  transition: border-color 0.2s; text-align: center;
-}
-.password-input:focus {
-  outline: none; border-color: var(--primary);
-}
-.password-input.error {
-  border-color: var(--danger); animation: shake 0.4s ease;
-}
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-6px); }
-  75% { transform: translateX(6px); }
-}
-.password-error {
-  color: var(--danger); font-size: 12px; margin-bottom: 10px; min-height: 18px;
-}
-.btn-password {
-  width: 100%; padding: 10px; font-size: 14px; font-weight: 600;
-}
 </style>
 </head>
 <body>
-
-<!-- Password Overlay -->
-<div id="passwordOverlay" class="password-overlay">
-  <div class="password-card">
-    <h2>🔒 作业管理工具</h2>
-    <p>请输入访问密码</p>
-    <input type="password" id="passwordInput" class="password-input" placeholder="密码" onkeydown="if(event.key==='Enter')checkPassword()">
-    <div id="passwordError" class="password-error"></div>
-    <button class="btn btn-primary btn-password" onclick="checkPassword()">进入</button>
-  </div>
-</div>
 
 <div class="container">
   <!-- Header -->
@@ -641,7 +618,7 @@ body {
   </div>
 
   <!-- ===== HOMEWORK SECTION ===== -->
-  <div class="hw-section" id="hwSection">
+  <div class="hw-section active" id="hwSection">
     <!-- HW List -->
     <div class="hw-list" id="hwList"></div>
 
@@ -761,7 +738,7 @@ body {
               <span>📷 点击拍照或上传图片（可选）</span>
               <img id="wqImagePreview" class="wq-image-preview" style="display:none;">
             </div>
-            <button class="btn btn-ai" id="btnRecognize" style="margin-top:6px;width:100%;" onclick="recognizeImageText('wqInputImage')">🤖 识别图片中的题目</button>
+            <button class="btn btn-ai btn-ai-lg" id="btnRecognize" style="margin-top:8px;width:100%;" onclick="recognizeImageText('wqInputImage')">🤖 识别图片中的题目</button>
           </div>
         </div>
         <div class="form-row" style="margin-top:4px;">
@@ -849,21 +826,6 @@ body {
         <textarea id="wqEditQuestion"></textarea>
       </div>
     </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label>错误答案</label>
-        <input type="text" id="wqEditWrong">
-      </div>
-      <div class="form-group">
-        <label>正确答案</label>
-        <input type="text" id="wqEditCorrect">
-      </div>
-    </div>
-    <div class="form-row">
-      <div class="form-group" style="flex:1;min-width:100%;">
-        <label>错因分析</label>
-        <input type="text" id="wqEditReason">
-      </div>
     </div>
     <div class="form-row">
       <div class="form-group" style="flex:1;min-width:100%;">
@@ -884,7 +846,7 @@ body {
     <div id="wqEditAiAnalysisBox" style="display:none;">
       <div class="form-row">
         <div class="form-group" style="flex:1;min-width:100%;">
-          <label>AI 错因分析</label>
+          <label>AI 分析</label>
           <div class="ai-result-box" id="wqEditAiAnalysis" style="max-height:120px;"></div>
         </div>
       </div>
@@ -956,35 +918,6 @@ body {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <div id="toast" class="toast"></div>
 <script>
-// ===== Password Protection =====
-const APP_PASSWORD = 'homework'; // 修改这里更改密码
-
-function checkPassword() {
-  const input = document.getElementById('passwordInput');
-  const error = document.getElementById('passwordError');
-  const overlay = document.getElementById('passwordOverlay');
-
-  if (input.value === APP_PASSWORD) {
-    sessionStorage.setItem('hw_auth', '1');
-    overlay.classList.add('hidden');
-    error.textContent = '';
-    input.classList.remove('error');
-  } else {
-    error.textContent = '密码错误，请重试';
-    input.classList.add('error');
-    input.value = '';
-    input.focus();
-    setTimeout(() => input.classList.remove('error'), 400);
-  }
-}
-
-// Auto-check on load
-if (sessionStorage.getItem('hw_auth') === '1') {
-  document.getElementById('passwordOverlay').classList.add('hidden');
-} else {
-  document.getElementById('passwordInput').focus();
-}
-
 // ============================================================
 // GLOBAL
 // ============================================================
@@ -1642,15 +1575,6 @@ function renderWrongQuestions() {
     var mastery = MASTERY_MAP[w.masteryStatus] || MASTERY_MAP.unmastered;
     var dateStr = w.createdAt ? new Date(w.createdAt).toLocaleDateString('zh-CN') : '';
 
-    var answersHtml = '';
-    if (w.wrongAnswer || w.correctAnswer) {
-      answersHtml = '<div class="wq-answers">'
-        + (w.wrongAnswer ? '<span class="wrong">❌ ' + escHtml(w.wrongAnswer) + '</span>' : '')
-        + (w.correctAnswer ? '<span class="correct">✅ ' + escHtml(w.correctAnswer) + '</span>' : '')
-        + '</div>';
-    }
-
-    var reasonHtml = w.mistakeReason ? '<div class="wq-reason">💡 ' + escHtml(w.mistakeReason) + '</div>' : '';
     var aiAnalysisHtml = w.aiAnalysis ? '<div class="wq-reason" style="background:linear-gradient(90deg,#e8edfe,#f0f3ff);">🤖 AI分析: ' + escHtml(w.aiAnalysis) + '</div>' : '';
 
     var imageHtml = '';
@@ -1666,17 +1590,20 @@ function renderWrongQuestions() {
         + (w.topic ? '<span class="wq-topic-tag">' + escHtml(w.topic) + '</span>' : '')
         + '<span class="mastery-tag ' + mastery.cls + '">' + mastery.label + '</span>'
         + '<div class="wq-actions">'
-          + (hasKey ? '<button class="btn-ai btn-sm" onclick="openAiGenerateModal(\'' + w.id + '\')" title="AI生成同类题">✨</button>' : '')
-          + (hasKey && !w.aiAnalysis ? '<button class="btn-ai btn-sm" onclick="aiAnalyzeReason(\'' + w.id + '\')" title="AI分析错因">🤖</button>' : '')
+          + '<div class="wq-actions-row">'
+          + (hasKey ? '<button class="btn-ai btn-sm" onclick="openAiGenerateModal(\'' + w.id + '\')" title="AI生成同类题">✨ 同类题</button>' : '')
+          + (hasKey && !w.aiAnalysis ? '<button class="btn-ai btn-sm" onclick="aiAnalyzeReason(\'' + w.id + '\')" title="AI分析错因">🤖 分析</button>' : '')
+          + '</div>'
+          + '<div class="wq-actions-row">'
+          + (hasKey && !w.topic ? '<button class="btn-ai btn-sm" onclick="aiExtractTopic(\'' + w.id + '\')" title="AI提取知识点">🏷 知识点</button>' : '')
           + '<button class="btn-ghost btn-sm" onclick="cycleMasteryStatus(\'' + w.id + '\')">标记</button>'
           + '<button class="btn-ghost btn-sm" onclick="openWqEditModal(\'' + w.id + '\')">编辑</button>'
-          + '<button class="btn-danger-text" onclick="deleteWrongQuestion(\'' + w.id + '\')">🗑</button>'
+          + '<button class="btn-danger-text btn-sm" onclick="deleteWrongQuestion(\'' + w.id + '\')">🗑 删除</button>'
+          + '</div>'
         + '</div>'
       + '</div>'
       + imageHtml
       + '<div class="wq-question">' + escHtml(w.questionText) + '</div>'
-      + answersHtml
-      + reasonHtml
       + aiAnalysisHtml
       + '<div class="wq-meta">'
         + (dateStr ? '<span>📅 ' + dateStr + '</span>' : '')
@@ -1807,9 +1734,6 @@ function openWqEditModal(wqId) {
   document.getElementById('wqEditTopic').value = wq.topic;
   document.getElementById('wqEditMastery').value = wq.masteryStatus;
   document.getElementById('wqEditQuestion').value = wq.questionText;
-  document.getElementById('wqEditWrong').value = wq.wrongAnswer;
-  document.getElementById('wqEditCorrect').value = wq.correctAnswer;
-  document.getElementById('wqEditReason').value = wq.mistakeReason;
   document.getElementById('wqEditNotes').value = wq.notes;
 
   var preview = document.getElementById('wqEditImagePreview');
@@ -1859,9 +1783,6 @@ async function saveWqEdit() {
     topic: document.getElementById('wqEditTopic').value.trim(),
     mastery_status: document.getElementById('wqEditMastery').value,
     question_text: document.getElementById('wqEditQuestion').value.trim(),
-    wrong_answer: document.getElementById('wqEditWrong').value.trim(),
-    correct_answer: document.getElementById('wqEditCorrect').value.trim(),
-    mistake_reason: document.getElementById('wqEditReason').value.trim(),
     notes: document.getElementById('wqEditNotes').value.trim(),
     image_url: imageUrl,
     updated_at: new Date().toISOString()
@@ -1953,19 +1874,38 @@ async function recognizeImageText(inputId) {
   var input = document.getElementById(inputId);
   if (!input || !input.files || !input.files[0]) { showToast('请先上传图片'); return; }
   var file = input.files[0];
+  var btn = document.getElementById('btnRecognize');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ 识别中...'; }
   var reader = new FileReader();
   reader.onload = async function(e) {
     var base64 = e.target.result;
-    showToast('🤖 正在识别图片中的题目...');
-    var result = await callQwenVision(base64, '请识别图片中的题目内容，只输出题目文字，不要添加任何额外说明。如果是数学题，请保留公式格式。');
+    showToast('🤖 正在识别图片中的题目，请稍候...');
+    var prompt = `你是一位资深初中教师，正在查看学生上传的作业/试卷照片。请仔细识别图片中的题目内容，直接输出题目原文，不要添加任何额外说明或解释：
+
+【要求】
+- 只输出题目内容，不要输出答案、解析、错因等内容
+- 数学题保留公式格式（如 1/2 + 3/4 = ?）
+- 如果图片模糊，不确定处用【模糊】标注
+- 不要序号，不要解释，不要额外文字`;
+    var result = await callQwenVision(base64, prompt);
+    if (btn) { btn.disabled = false; btn.textContent = '🤖 识别图片中的题目'; }
     if (result) {
       document.getElementById('wqInputQuestion').value = result.trim();
-      showToast('✅ 题目识别成功！');
+      showToast('✅ 识别成功，已填入题目内容');
     } else {
       showToast('❌ 识别失败，请手动输入');
     }
   };
   reader.readAsDataURL(file);
+}
+
+// Parse recognition result - simplified to just clean the text
+function parseRecognizedText(text) {
+  if (!text) return '';
+  return text.trim()
+    .replace(/^#+\s+/gm, '')
+    .replace(/^\d+\.\s+/gm, '')
+    .replace(/^[-*]\s+/gm, '');
 }
 
 // ---- DeepSeek API Call ----
@@ -1990,22 +1930,66 @@ async function aiAnalyzeReason(wqId) {
   var btn = document.querySelector('#wq-' + wqId + ' .btn-ai[title="AI分析错因"]');
   if (btn) { btn.disabled = true; btn.textContent = '⏳'; }
 
-  var prompt = '你是一位资深初中教学专家。请分析以下错题的错因，并给出简洁的总结（50字以内）。\n\n题目：' + wq.questionText + '\n';
-  if (wq.wrongAnswer) prompt += '学生答案：' + wq.wrongAnswer + '\n';
-  if (wq.correctAnswer) prompt += '正确答案：' + wq.correctAnswer + '\n';
-  prompt += '\n请分析：1. 这道题考查什么知识点；2. 学生为什么会做错；3. 避免再犯的建议。用中文回答，简洁。';
+  var prompt = '你是一位资深初中数学/教学专家。请对以下题目进行专业分析，并严格按照指定格式输出。\n\n';
+  prompt += '【题目】' + wq.questionText + '\n';
+  prompt += '\n【分析要求】\n';
+  prompt += '1. 知识点：用1-2个关键词概括这道题考查的核心知识点（如：分数加减、一元一次方程、几何证明）\n';
+  prompt += '2. 解题思路：分析这道题的解题关键步骤\n';
+  prompt += '3. 常见错误：学生做这类题时容易犯的错误\n';
+  prompt += '4. 学习建议：给出具体、可操作的学习方法\n';
+  prompt += '\n【输出格式】\n';
+  prompt += '知识点：xxx\n';
+  prompt += '思路：xxx\n';
+  prompt += '常见错误：xxx\n';
+  prompt += '建议：xxx\n';
+  prompt += '\n【限制】总字数控制在200字以内，用中文回答，简洁专业。';
 
   var result = await callDeepSeek([{ role: 'user', content: prompt }]);
   if (btn) { btn.disabled = false; btn.textContent = '🤖'; }
   if (!result) return;
 
-  var saveResult = await sb.from('wrong_questions').update({
+  // 自动提取知识点
+  var topicMatch = result.match(/知识点[：:]\s*([^\n]+)/);
+  var extractedTopic = topicMatch ? topicMatch[1].trim() : '';
+
+  var updateData = {
     ai_analysis: result,
+    updated_at: new Date().toISOString()
+  };
+  if (extractedTopic && !wq.topic) {
+    updateData.topic = extractedTopic;
+  }
+
+  var saveResult = await sb.from('wrong_questions').update(updateData).eq('id', wqId);
+
+  if (saveResult.error) { showToast('分析保存失败'); return; }
+  showToast(extractedTopic ? '✅ AI 分析完成，已提取知识点' : '✅ AI 错因分析完成');
+  fetchWrongQuestions();
+}
+
+// ---- AI Extract Topic (单独提取知识点) ----
+async function aiExtractTopic(wqId) {
+  var wq = wqList.find(function(w) { return w.id === wqId; });
+  if (!wq) return;
+  if (wq.topic) { showToast('已有知识点标签'); return; }
+
+  var prompt = '你是一位资深初中教师。请根据以下题目，用1-2个关键词概括它考查的核心知识点。只输出知识点名称，不要任何解释。\n\n题目：' + wq.questionText;
+  if (wq.correctAnswer) prompt += '\n答案：' + wq.correctAnswer;
+  prompt += '\n\n知识点：';
+
+  var result = await callDeepSeek([{ role: 'user', content: prompt }]);
+  if (!result) return;
+
+  var topic = result.trim().replace(/^知识点[：:]/, '').trim();
+  if (topic.length > 20) topic = topic.substring(0, 20);
+
+  var saveResult = await sb.from('wrong_questions').update({
+    topic: topic,
     updated_at: new Date().toISOString()
   }).eq('id', wqId);
 
-  if (saveResult.error) { showToast('分析保存失败'); return; }
-  showToast('✅ AI 错因分析完成');
+  if (saveResult.error) { showToast('提取失败'); return; }
+  showToast('✅ 已提取知识点：' + topic);
   fetchWrongQuestions();
 }
 
@@ -2034,10 +2018,16 @@ async function doAiGenerate() {
   var btn = document.getElementById('aiGenBtn');
   btn.disabled = true; btn.textContent = '⏳ 生成中...';
 
-  var prompt = '你是一位资深初中教师。请根据以下题目生成' + count + '道同类型的练习题，难度相近或略高，帮助巩固该知识点。\n\n原题：' + wq.questionText + '\n';
-  if (wq.correctAnswer) prompt += '正确答案：' + wq.correctAnswer + '\n';
-  if (wq.topic) prompt += '知识点：' + wq.topic + '\n';
-  prompt += '\n要求：1. 每道题给出题目和答案；2. 标注考查的具体知识点；3. 用中文回答；4. 格式清晰。';
+  var prompt = '你是一位资深初中命题专家。请根据以下题目，生成' + count + '道同类型、同难度（或略高）的练习题，帮助学生巩固该知识点。\n\n';
+  prompt += '【原题】' + wq.questionText + '\n';
+  if (wq.topic) prompt += '【知识点】' + wq.topic + '\n';
+  prompt += '\n【生成要求】\n';
+  prompt += '1. 题目设计：针对学生的错因设计题目，直击薄弱环节\n';
+  prompt += '2. 难度控制：与原题相近或略高，循序渐进\n';
+  prompt += '3. 每道题给出：题目、详细解答步骤、答案\n';
+  prompt += '4. 标注每道题考查的具体知识点\n';
+  prompt += '5. 用中文回答，格式清晰，便于打印或练习\n';
+  prompt += '\n【输出格式】\n第1题：...\n解答：...\n答案：...\n\n第2题：...';
 
   var result = await callDeepSeek([{ role: 'user', content: prompt }]);
   btn.disabled = false; btn.textContent = '✨ 生成同类题';
