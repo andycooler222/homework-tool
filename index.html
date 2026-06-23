@@ -1797,6 +1797,12 @@ function previewWqImage(input, previewId) {
 
 async function uploadImage(file) {
   try {
+    var MAX_SIZE = 2 * 1024 * 1024; // 2MB
+    if (file.size > MAX_SIZE) {
+      showToast('❌ 图片超过 2MB，请先压缩或裁剪后再上传');
+      console.error('Image too large:', file.size, 'bytes');
+      return null;
+    }
     var ext = file.name.split('.').pop() || 'jpg';
     var name = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
     var path = name + '.' + ext;
@@ -1925,15 +1931,15 @@ async function aiAnalyzeReason(wqId) {
   prompt += '【题目】' + wq.questionText + '\n';
   prompt += '\n【分析要求】\n';
   prompt += '1. 知识点：用1-2个关键词概括这道题考查的核心知识点（如：分数加减、一元一次方程、几何证明）\n';
-  prompt += '2. 解题思路：分析这道题的解题关键步骤\n';
+  prompt += '2. 解答：给出这道题的完整解答过程或正确答案\n';
   prompt += '3. 常见错误：学生做这类题时容易犯的错误\n';
   prompt += '4. 学习建议：给出具体、可操作的学习方法\n';
   prompt += '\n【输出格式】\n';
   prompt += '知识点：xxx\n';
-  prompt += '思路：xxx\n';
+  prompt += '解答：xxx\n';
   prompt += '常见错误：xxx\n';
   prompt += '建议：xxx\n';
-  prompt += '\n【限制】总字数控制在200字以内，用中文回答，简洁专业。';
+  prompt += '\n【限制】总字数控制在250字以内，用中文回答，简洁专业。';
 
   var result = await callDeepSeek([{ role: 'user', content: prompt }]);
   if (btn) { btn.disabled = false; btn.textContent = '🤖'; }
